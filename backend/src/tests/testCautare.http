@@ -1,0 +1,11 @@
+### Cautare simpla
+GET http://localhost:5000/api/anunturi/search?q=Golf
+
+### Cautare avansata - doar marca
+GET http://localhost:5000/api/anunturi/search/avansat?marca=Volkswagen
+
+### Cautare avansata - mai multe filtre
+GET http://localhost:5000/api/anunturi/search/avansat?marca=Volkswagen&pret_max=15000&transmisie=manuala
+
+### Cautare avansata - dupa an si kilometraj
+GET http://localhost:5000/api/anunturi/search/avansat?an_min=2015&an_max=2020&km_max=100000

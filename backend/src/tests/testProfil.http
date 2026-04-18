@@ -1,0 +1,31 @@
+### Vezi profilul tau
+GET http://localhost:5000/api/user/profil
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+### Editeaza profilul
+PUT http://localhost:5000/api/user/profil
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+{
+  "nume": "Eduard Iancu",
+  "email": "eduard@test.com"
+}
+
+### Schimba parola
+PUT http://localhost:5000/api/user/parola
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+{
+  "parola_veche": "parola123",
+  "parola_noua": "parolaNoua456"
+}
+
+### Vezi anunturile tale
+GET http://localhost:5000/api/user/anunturi
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+### Sterge anunt duplicat
+DELETE http://localhost:5000/api/anunturi/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA

@@ -1,0 +1,42 @@
+### Adauga anunt (necesita token)
+POST http://localhost:5000/api/anunturi
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+{
+  "titlu": "Volkswagen Golf 7",
+  "descriere": "Masina in stare foarte buna",
+  "pret": 12000,
+  "marca": "Volkswagen",
+  "model": "Golf 7",
+  "an": 2018,
+  "kilometraj": 85000,
+  "motorizare": "1.6 TDI",
+  "transmisie": "manuala",
+  "putere": 115,
+  "tractiune": "FWD",
+  "capacitate_cilindrica": "1598cc",
+  "caroserie": "Small car"
+}
+
+### Vezi toate anunturile
+GET http://localhost:5000/api/anunturi
+
+### Vezi un anunt dupa id
+GET http://localhost:5000/api/anunturi/2
+
+### Sterge anunt
+DELETE http://localhost:5000/api/anunturi/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+### Adauga la favorite (inlocuieste 1 cu id-ul anuntului)
+POST http://localhost:5000/api/favorite/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+### Vezi toate favoritele tale
+GET http://localhost:5000/api/favorite
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
+
+### Sterge din favorite
+DELETE http://localhost:5000/api/favorite/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
