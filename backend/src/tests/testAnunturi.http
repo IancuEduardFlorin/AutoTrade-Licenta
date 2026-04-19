@@ -4,7 +4,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3NjUxMjkwMCwiZXhwIjoxNzc2NTk5MzAwfQ.cGM6KNNXPsHRZkzqG3-U5TTB6ZhpXZ8ctZmS6ISLejA
 
 {
-  "titlu": "Volkswagen Golf 7",
+  "titlu": "Renault Golf 7",
   "descriere": "Masina in stare foarte buna",
   "pret": 12000,
   "marca": "Volkswagen",

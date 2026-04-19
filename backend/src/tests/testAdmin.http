@@ -1,0 +1,20 @@
+### Vezi toti utilizatorii
+GET http://localhost:5000/api/admin/utilizatori
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiYWRtaW4iLCJpYXQiOjE3NzY1MjgwNjAsImV4cCI6MTc3NjYxNDQ2MH0.Ff9O2-9w-P6q3Di2MScl8sJsyEdJd_2zGiIjOR6dfxY
+
+### Vezi toate anunturile
+GET http://localhost:5000/api/admin/anunturi
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiYWRtaW4iLCJpYXQiOjE3NzY1MjgwNjAsImV4cCI6MTc3NjYxNDQ2MH0.Ff9O2-9w-P6q3Di2MScl8sJsyEdJd_2zGiIjOR6dfxY
+
+### Schimba rolul unui utilizator (inlocuieste 2 cu id-ul unui user)
+PUT http://localhost:5000/api/admin/utilizatori/2/rol
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiYWRtaW4iLCJpYXQiOjE3NzY1MjgwNjAsImV4cCI6MTc3NjYxNDQ2MH0.Ff9O2-9w-P6q3Di2MScl8sJsyEdJd_2zGiIjOR6dfxY
+
+{
+  "rol": "admin"
+}
+
+### Sterge un anunt ca admin
+DELETE http://localhost:5000/api/admin/anunturi/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiYWRtaW4iLCJpYXQiOjE3NzY1MjgwNjAsImV4cCI6MTc3NjYxNDQ2MH0.Ff9O2-9w-P6q3Di2MScl8sJsyEdJd_2zGiIjOR6dfxY

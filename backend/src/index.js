@@ -6,6 +6,8 @@ import authRoutes from './routes/authRoutes.js';
 import anunturiRoutes from './routes/anunturiRoutes.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+
 
 dotenv.config();
 
@@ -18,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/anunturi', anunturiRoutes);
 app.use('/api/favorite', favoriteRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.send('API AutoTrade functional!');
