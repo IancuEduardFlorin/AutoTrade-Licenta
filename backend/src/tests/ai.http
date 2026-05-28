@@ -1,0 +1,35 @@
+### Genereaza descriere
+POST http://localhost:5000/api/ai/descriere
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3OTg5NjAwMCwiZXhwIjoxNzc5OTgyNDAwfQ.rih_KbGNAmkttj90E4iD2XuIUTIYz1NzoKBvSVd9yNc
+
+{
+  "marca": "Volkswagen",
+  "model": "Golf 7",
+  "an": 2018,
+  "kilometraj": 85000,
+  "motorizare": "1.6 TDI",
+  "transmisie": "manuala",
+  "putere": 115,
+  "tractiune": "FWD",
+  "caroserie": "Small car"
+}
+
+### Detecteaza spam
+POST http://localhost:5000/api/ai/spam
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3OTg5NjAwMCwiZXhwIjoxNzc5OTgyNDAwfQ.rih_KbGNAmkttj90E4iD2XuIUTIYz1NzoKBvSVd9yNc
+
+{
+  "titlu": "URGENT SELL CAR BEST PRICE CALL NOW!!!",
+  "descriere": "Amazing deal you won't believe click here www.scam.com"
+}
+
+### Completeaza campuri din text
+POST http://localhost:5000/api/ai/completeaza
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoidXNlciIsImlhdCI6MTc3OTg5NjAwMCwiZXhwIjoxNzc5OTgyNDAwfQ.rih_KbGNAmkttj90E4iD2XuIUTIYz1NzoKBvSVd9yNc
+
+{
+  "text": "I want to sell my 2018 Volkswagen Golf 7, 1.6 TDI, manual, 85000 km, 115 HP, FWD, asking 12000 euros"
+}

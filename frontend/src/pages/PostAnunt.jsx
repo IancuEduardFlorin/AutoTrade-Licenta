@@ -7,6 +7,10 @@ function PostAnunt() {
     const token = localStorage.getItem('token');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [aiText, setAiText] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
+    const [descLoading, setDescLoading] = useState(false);
+    const [spamWarning, setSpamWarning] = useState('');
     const [formData, setFormData] = useState({
         titlu: '', descriere: '', pret: '',
         marca: '', model: '', an: '',
@@ -24,11 +28,67 @@ function PostAnunt() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Completeaza campurile din text in limbaj natural
+    const handleAutofill = async () => {
+        if (!aiText.trim()) return;
+        setAiLoading(true);
+        try {
+            const response = await api.post('/ai/completeaza', { text: aiText });
+            const data = response.data;
+            setFormData(prev => ({
+                ...prev,
+                titlu: data.titlu || prev.titlu,
+                marca: data.marca || prev.marca,
+                model: data.model || prev.model,
+                an: data.an || prev.an,
+                kilometraj: data.kilometraj || prev.kilometraj,
+                motorizare: data.motorizare || prev.motorizare,
+                transmisie: data.transmisie || prev.transmisie,
+                putere: data.putere || prev.putere,
+                tractiune: data.tractiune || prev.tractiune,
+                caroserie: data.caroserie || prev.caroserie,
+                capacitate_cilindrica: data.capacitate_cilindrica || prev.capacitate_cilindrica,
+                pret: data.pret || prev.pret,
+            }));
+        } catch (err) {
+            setError('AI autofill failed. Please try again.');
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    // Genereaza descriere cu AI
+    const handleGenerateDesc = async () => {
+        setDescLoading(true);
+        try {
+            const response = await api.post('/ai/descriere', formData);
+            setFormData(prev => ({ ...prev, descriere: response.data.descriere }));
+        } catch (err) {
+            setError('AI description generation failed. Please try again.');
+        } finally {
+            setDescLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setSpamWarning('');
         setLoading(true);
+
         try {
+            // Verifica spam inainte de a posta
+            const spamRes = await api.post('/ai/spam', {
+                titlu: formData.titlu,
+                descriere: formData.descriere,
+            });
+
+            if (spamRes.data.isSpam && spamRes.data.confidence > 70) {
+                setSpamWarning(`⚠️ This listing was flagged as potential spam (${spamRes.data.confidence}% confidence): ${spamRes.data.reason}`);
+                setLoading(false);
+                return;
+            }
+
             await api.post('/anunturi', formData);
             navigate('/listings');
         } catch (err) {
@@ -47,6 +107,34 @@ function PostAnunt() {
                 </div>
 
                 {error && <div style={styles.errorBox}>{error}</div>}
+                {spamWarning && <div style={styles.spamBox}>{spamWarning}</div>}
+
+                {/* AI Autofill Section */}
+                <div style={styles.aiSection}>
+                    <div style={styles.aiHeader}>
+                        <div style={styles.aiIconBox}>✨</div>
+                        <div>
+                            <div style={styles.aiTitle}>AI Autofill</div>
+                            <div style={styles.aiDesc}>Describe your car in plain language and AI will fill in the fields automatically</div>
+                        </div>
+                    </div>
+                    <div style={styles.aiInputRow}>
+                        <input
+                            style={styles.aiInput}
+                            placeholder='e.g. "2018 Volkswagen Golf 7, 1.6 TDI, manual, 85000 km, 115 HP, asking 12000 euros"'
+                            value={aiText}
+                            onChange={(e) => setAiText(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            style={styles.btnAi}
+                            onClick={handleAutofill}
+                            disabled={aiLoading || !aiText.trim()}
+                        >
+                            {aiLoading ? 'Filling...' : '✨ Autofill'}
+                        </button>
+                    </div>
+                </div>
 
                 <form onSubmit={handleSubmit}>
 
@@ -64,8 +152,25 @@ function PostAnunt() {
                             </div>
                         </div>
                         <div style={styles.fieldGroup}>
-                            <label style={styles.label}>Description</label>
-                            <textarea style={styles.textarea} name="descriere" placeholder="Describe the car's condition, history, extras..." value={formData.descriere} onChange={handleChange} rows={4} />
+                            <div style={styles.labelRow}>
+                                <label style={styles.label}>Description</label>
+                                <button
+                                    type="button"
+                                    style={styles.btnGenDesc}
+                                    onClick={handleGenerateDesc}
+                                    disabled={descLoading}
+                                >
+                                    {descLoading ? 'Generating...' : '✨ Generate with AI'}
+                                </button>
+                            </div>
+                            <textarea
+                                style={styles.textarea}
+                                name="descriere"
+                                placeholder="Describe the car's condition, history, extras..."
+                                value={formData.descriere}
+                                onChange={handleChange}
+                                rows={4}
+                            />
                         </div>
                     </div>
 
@@ -166,7 +271,7 @@ function PostAnunt() {
                     <div style={styles.formFooter}>
                         <button type="button" style={styles.btnCancel} onClick={() => navigate('/listings')}>Cancel</button>
                         <button type="submit" style={styles.btnSubmit} disabled={loading}>
-                            {loading ? 'Posting...' : 'Post listing'}
+                            {loading ? 'Checking & posting...' : 'Post listing'}
                         </button>
                     </div>
                 </form>
@@ -182,12 +287,23 @@ const styles = {
     title: { fontSize: '22px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px' },
     subtitle: { fontSize: '13px', color: 'var(--text-muted)' },
     errorBox: { background: '#2a1010', borderWidth: '1px', borderStyle: 'solid', borderColor: '#5a2020', color: '#f08080', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' },
+    spamBox: { background: '#2a1a00', borderWidth: '1px', borderStyle: 'solid', borderColor: '#5a3a00', color: '#f0a050', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' },
+    aiSection: { background: 'var(--bg-card)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border-accent)', borderRadius: '12px', padding: '16px 18px', marginBottom: '16px' },
+    aiHeader: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' },
+    aiIconBox: { width: '36px', height: '36px', background: 'var(--pill-bg)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border-accent)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 },
+    aiTitle: { fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '2px' },
+    aiDesc: { fontSize: '11px', color: 'var(--text-muted)' },
+    aiInputRow: { display: 'flex', gap: '8px' },
+    aiInput: { flex: 1, background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none', fontFamily: 'inherit' },
+    btnAi: { background: 'var(--accent)', color: 'var(--text-primary)', border: 'none', borderRadius: '8px', padding: '9px 16px', fontSize: '12px', fontWeight: '500', whiteSpace: 'nowrap' },
     section: { background: 'var(--bg-card)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '12px', padding: '20px', marginBottom: '16px' },
     sectionTitle: { fontSize: '13px', fontWeight: '500', color: 'var(--accent-light)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '16px' },
     grid2: { display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px', marginBottom: '12px' },
     grid3: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginBottom: '12px' },
     fieldGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
+    labelRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     label: { fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500' },
+    btnGenDesc: { background: 'transparent', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border-accent)', color: 'var(--accent-light)', borderRadius: '6px', padding: '3px 10px', fontSize: '11px', cursor: 'pointer', fontFamily: 'inherit' },
     input: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit' },
     select: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'inherit' },
     textarea: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' },

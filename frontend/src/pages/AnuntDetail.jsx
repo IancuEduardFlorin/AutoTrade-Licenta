@@ -114,11 +114,15 @@ function AnuntDetail() {
                         <div style={styles.sellerTitle}>Seller information</div>
                         <div style={styles.sellerName}>👤 {anunt.nume_utilizator}</div>
                         <div style={styles.sellerSince}>Member since {new Date(anunt.creat_la).getFullYear()}</div>
-                        {token ? (
-                            <button style={styles.btnContact}>💬 Contact seller</button>
-                        ) : (
-                            <Link to="/login" style={styles.btnContact}>Sign in to contact</Link>
-                        )}
+                        {token && anunt.user_id !== user?.id ? (
+                            <Link to={`/chat/${anunt.user_id}`} style={styles.btnContact}>
+                                💬 Contact seller
+                            </Link>
+                        ) : !token ? (
+                            <Link to="/login" style={styles.btnContact}>
+                                Sign in to contact
+                            </Link>
+                        ) : null}
                     </div>
                 </div>
 

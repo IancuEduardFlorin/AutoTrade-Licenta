@@ -10,6 +10,8 @@ import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import PostAnunt from './pages/PostAnunt';
 import EditAnunt from './pages/EditAnunt';
+import Chat from './pages/Chat';
+import AiChatbot from './components/AiChatbot';
 
 function App() {
     return (
@@ -25,8 +27,11 @@ function App() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/listings/new" element={<PostAnunt />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/chat/:userId" element={<Chat />} />
             </Routes>
             <Footer />
+            <AiChatbot />
         </BrowserRouter>
     );
 }

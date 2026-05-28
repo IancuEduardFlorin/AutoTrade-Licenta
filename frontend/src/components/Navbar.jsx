@@ -35,8 +35,13 @@ function Navbar() {
                         {token && user?.rol === 'admin' && (
                             <Link to="/admin" style={{...styles.pill, ...(active === 'admin' ? styles.pillActive : {})}} onClick={() => setActive('admin')}>Admin</Link>
                         )}
+                        {token && (
+                            <Link to="/chat" style={styles.btnSignin}>💬</Link>
+                        )}
                         <button style={styles.btnPost} onClick={handleLogout}>Sign out</button>
+
                     </>
+
                 ) : (
                     <>
                         <Link to="/login" style={styles.btnSignin}>Sign in</Link>
