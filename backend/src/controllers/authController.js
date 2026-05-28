@@ -1,8 +1,41 @@
 import db from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { body, validationResult } from 'express-validator';
+
+// Validatori
+export const registerValidators = [
+    body('nume')
+        .trim()
+        .notEmpty().withMessage('Name is required')
+        .isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format')
+        .normalizeEmail(),
+    body('parola')
+        .notEmpty().withMessage('Password is required')
+        .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+];
+
+export const loginValidators = [
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format')
+        .normalizeEmail(),
+    body('parola')
+        .notEmpty().withMessage('Password is required'),
+];
 
 export const register = async (req, res) => {
+    // Verifica erorile de validare
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ mesaj: errors.array()[0].msg });
+    }
+
     try {
         const { nume, email, parola } = req.body;
 
@@ -29,6 +62,11 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ mesaj: errors.array()[0].msg });
+    }
+
     try {
         const { email, parola } = req.body;
 

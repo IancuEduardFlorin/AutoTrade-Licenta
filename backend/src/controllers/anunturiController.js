@@ -1,5 +1,22 @@
 import db from '../config/db.js';
+import { body, validationResult } from 'express-validator';
 
+export const anuntValidators = [
+    body('titlu')
+        .trim()
+        .notEmpty().withMessage('Title is required')
+        .isLength({ min: 3, max: 200 }).withMessage('Title must be between 3 and 200 characters'),
+    body('pret')
+        .notEmpty().withMessage('Price is required')
+        .isNumeric().withMessage('Price must be a number')
+        .isFloat({ min: 0 }).withMessage('Price must be positive'),
+    body('an')
+        .notEmpty().withMessage('Year is required')
+        .isInt({ min: 1900, max: new Date().getFullYear() }).withMessage('Invalid year'),
+    body('kilometraj')
+        .notEmpty().withMessage('Mileage is required')
+        .isInt({ min: 0 }).withMessage('Mileage must be positive'),
+];
 // PUBLIC - Vezi toate anunturile
 export const getAnunturi = async (req, res) => {
     try {
@@ -38,6 +55,11 @@ export const getAnuntById = async (req, res) => {
 
 // PROTEJAT - Adauga anunt nou
 export const createAnunt = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ mesaj: errors.array()[0].msg });
+    }
+    // ... restul codului rămâne la fel
     try {
         const {
             titlu, descriere, pret, marca, model, an,

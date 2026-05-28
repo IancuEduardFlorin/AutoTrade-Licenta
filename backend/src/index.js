@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import db from './config/db.js';
@@ -23,8 +25,50 @@ const io = new Server(httpServer, {
     },
 });
 
-app.use(cors());
-app.use(express.json());
+// Securitate HTTP headers
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+}));
+
+// CORS
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.use(express.json({ limit: '10mb' }));
+
+// Rate limiting general
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minute
+    max: 200,
+    message: { mesaj: 'Too many requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Rate limiting strict pentru autentificare
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minute
+    max: 10,
+    message: { mesaj: 'Too many login attempts, please try again in 15 minutes' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Rate limiting pentru AI
+const aiLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minut
+    max: 10,
+    message: { mesaj: 'Too many AI requests, please slow down' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+app.use('/api/', generalLimiter);
+app.use('/api/auth', authLimiter);
+app.use('/api/ai', aiLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/anunturi', anunturiRoutes);
@@ -38,21 +82,17 @@ app.get('/', (req, res) => {
     res.send('API AutoTrade functional!');
 });
 
-// Socket.io - gestionare conexiuni real-time
+// Socket.io
 io.on('connection', (socket) => {
     console.log('User conectat:', socket.id);
 
-    // Utilizatorul intra in camera sa personala
     socket.on('join', (userId) => {
         socket.join(`user_${userId}`);
         console.log(`User ${userId} a intrat in camera user_${userId}`);
     });
 
-    // Trimite mesaj real-time
     socket.on('sendMessage', (data) => {
-        // Trimite mesajul destinatarului
         io.to(`user_${data.destinatar_id}`).emit('newMessage', data);
-        // Trimite si expeditorului ca confirmare
         io.to(`user_${data.expeditor_id}`).emit('newMessage', data);
     });
 
