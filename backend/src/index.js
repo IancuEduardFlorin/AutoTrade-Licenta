@@ -16,14 +16,7 @@ import mesajeRoutes from './routes/mesajeRoutes.js';
 import imaginiRoutes from './routes/imaginiRoutes.js';
 
 dotenv.config();
-// Mentine conexiunea MySQL activa
-setInterval(async () => {
-    try {
-        await db.query('SELECT 1');
-    } catch (err) {
-        console.error('DB keepalive error:', err.message);
-    }
-}, 30000);
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -32,6 +25,15 @@ const io = new Server(httpServer, {
         methods: ['GET', 'POST'],
     },
 });
+
+// Mentine conexiunea MySQL activa
+setInterval(async () => {
+    try {
+        await db.query('SELECT 1');
+    } catch (err) {
+        console.error('DB keepalive error:', err.message);
+    }
+}, 30000);
 
 // Securitate HTTP headers
 app.use(helmet({
@@ -47,18 +49,9 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
-// Rate limiting general
-const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minute
-    max: 200,
-    message: { mesaj: 'Too many requests, please try again later' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-
 // Rate limiting strict pentru autentificare
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minute
+    windowMs: 15 * 60 * 1000,
     max: 10,
     message: { mesaj: 'Too many login attempts, please try again in 15 minutes' },
     standardHeaders: true,
@@ -67,11 +60,21 @@ const authLimiter = rateLimit({
 
 // Rate limiting pentru AI
 const aiLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minut
+    windowMs: 60 * 1000,
     max: 10,
     message: { mesaj: 'Too many AI requests, please slow down' },
     standardHeaders: true,
     legacyHeaders: false,
+});
+
+// Rate limiting general - fara limita pentru imagini
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 2000,
+    message: { mesaj: 'Too many requests, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.path.includes('/imagini'),
 });
 
 app.use('/api/', generalLimiter);
