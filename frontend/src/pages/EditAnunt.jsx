@@ -8,6 +8,9 @@ function EditAnunt() {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     const [loading, setLoading] = useState(true);
+    const [imaginiExistente, setImaginiExistente] = useState([]);
+    const [imaginiNoi, setImaginiNoi] = useState([]);
+    const [uploadProgress, setUploadProgress] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
@@ -26,15 +29,18 @@ function EditAnunt() {
     useEffect(() => {
         const fetchAnunt = async () => {
             try {
-                const response = await api.get(`/anunturi/${id}`);
-                const anunt = response.data;
+                const [anuntRes, imaginiRes] = await Promise.all([
+                    api.get(`/anunturi/${id}`),
+                    api.get(`/anunturi/${id}/imagini`),
+                ]);
+                const anunt = anuntRes.data;
 
-                // Verificam daca userul e proprietarul sau admin
                 if (anunt.user_id !== user?.id && user?.rol !== 'admin') {
                     navigate('/listings');
                     return;
                 }
 
+                setImaginiExistente(imaginiRes.data);
                 setFormData({
                     titlu: anunt.titlu || '',
                     descriere: anunt.descriere || '',
@@ -59,7 +65,6 @@ function EditAnunt() {
         };
         fetchAnunt();
     }, [id]);
-
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -70,14 +75,39 @@ function EditAnunt() {
         setSaving(true);
         try {
             await api.put(`/anunturi/${id}`, formData);
+
+            // Actualizeaza ordinea imaginilor existente
+            if (imaginiExistente.length > 0) {
+                await Promise.all(imaginiExistente.map((img, i) =>
+                    api.put(`/anunturi/imagini/${img.id}/ordine`, { ordine: i })
+                ));
+            }
+
+            if (imaginiNoi.length > 0) {
+                setUploadProgress(true);
+                const formDataImagini = new FormData();
+                imaginiNoi.forEach(img => formDataImagini.append('imagini', img));
+                await api.post(`/anunturi/${id}/imagini`, formDataImagini, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+            }
+
             navigate(`/listings/${id}`);
         } catch (err) {
             setError(err.response?.data?.mesaj || 'Something went wrong');
         } finally {
             setSaving(false);
+            setUploadProgress(false);
+        }
+    };    const handleStergeImagine = async (imagineId) => {
+        if (!window.confirm('Delete this image?')) return;
+        try {
+            await api.delete(`/anunturi/imagini/${imagineId}`);
+            setImaginiExistente(imaginiExistente.filter(img => img.id !== imagineId));
+        } catch (err) {
+            setError('Could not delete image');
         }
     };
-
     if (loading) return <div style={styles.loading}>Loading...</div>;
 
     return (
@@ -204,7 +234,87 @@ function EditAnunt() {
                             </div>
                         </div>
                     </div>
+                    {/* Imagini existente */}
+                    <div style={styles.section}>
+                        <div style={styles.sectionTitle}>Photos</div>
 
+                        {imaginiExistente.length > 0 && (
+                            <div style={styles.existingImgs}>
+                                <div style={{...styles.label, marginBottom: '8px'}}>Current photos — drag to reorder</div>
+                                <div style={styles.previewGrid}>
+                                    {imaginiExistente.map((img, i) => (
+                                        <div
+                                            key={img.id}
+                                            draggable
+                                            onDragStart={(e) => e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'existing', index: i }))}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                                                if (data.type === 'existing') {
+                                                    const newArr = [...imaginiExistente];
+                                                    const [moved] = newArr.splice(data.index, 1);
+                                                    newArr.splice(i, 0, moved);
+                                                    setImaginiExistente(newArr);
+                                                }
+                                            }}
+                                            style={{...styles.previewItem, cursor: 'grab'}}
+                                        >
+                                            <img src={img.url} alt="car" style={styles.previewImg} />
+                                            {i === 0 && <div style={styles.mainBadge}>Main</div>}
+                                            <button type="button" style={styles.removeImg} onClick={() => handleStergeImagine(img.id)}>✕</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={{...styles.uploadArea, marginTop: imaginiExistente.length > 0 ? '16px' : '0'}}>
+                            <input
+                                type="file"
+                                id="imagini-noi"
+                                multiple
+                                accept="image/*"
+                                style={{display: 'none'}}
+                                onChange={(e) => setImaginiNoi(Array.from(e.target.files))}
+                            />
+                            <label htmlFor="imagini-noi" style={styles.uploadLabel}>
+                                <div style={{fontSize: '28px'}}>📷</div>
+                                <div style={{fontSize: '13px', color: 'var(--text-primary)'}}>Click to add more photos</div>
+                                <div style={{fontSize: '11px', color: 'var(--text-muted)'}}>Max 5 photos · JPG, PNG, WebP · Max 5MB each</div>
+                            </label>
+                            {imaginiNoi.length > 0 && (
+                                <div style={{marginTop: '16px'}}>
+                                    <div style={{...styles.label, marginBottom: '8px'}}>New photos — drag to reorder</div>
+                                    <div style={styles.previewGrid}>
+                                        {imaginiNoi.map((img, i) => (
+                                            <div
+                                                key={i}
+                                                draggable
+                                                onDragStart={(e) => e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'new', index: i }))}
+                                                onDragOver={(e) => e.preventDefault()}
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                                                    if (data.type === 'new') {
+                                                        const newArr = [...imaginiNoi];
+                                                        const [moved] = newArr.splice(data.index, 1);
+                                                        newArr.splice(i, 0, moved);
+                                                        setImaginiNoi(newArr);
+                                                    }
+                                                }}
+                                                style={{...styles.previewItem, cursor: 'grab'}}
+                                            >
+                                                <img src={URL.createObjectURL(img)} alt={`new ${i}`} style={styles.previewImg} />
+                                                {i === 0 && imaginiExistente.length === 0 && <div style={styles.mainBadge}>Main</div>}
+                                                <button type="button" style={styles.removeImg} onClick={() => setImaginiNoi(imaginiNoi.filter((_, idx) => idx !== i))}>✕</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     <div style={styles.formFooter}>
                         <button type="button" style={styles.btnCancel} onClick={() => navigate(`/listings/${id}`)}>Cancel</button>
                         <button type="submit" style={styles.btnSubmit} disabled={saving}>
@@ -218,6 +328,7 @@ function EditAnunt() {
 }
 
 const styles = {
+    mainBadge: { position: 'absolute', bottom: '4px', left: '4px', background: 'var(--accent)', color: 'var(--text-primary)', fontSize: '9px', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' },
     page: { minHeight: '100vh', padding: '24px', background: 'var(--bg-primary)' },
     loading: { textAlign: 'center', padding: '60px', color: 'var(--text-muted)' },
     container: { maxWidth: '800px', margin: '0 auto' },
@@ -239,6 +350,13 @@ const styles = {
     formFooter: { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' },
     btnCancel: { background: 'transparent', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', color: 'var(--text-muted)', borderRadius: '8px', padding: '10px 20px', fontSize: '13px' },
     btnSubmit: { background: 'var(--accent)', color: 'var(--text-primary)', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: '500' },
+    existingImgs: { marginBottom: '12px' },
+    uploadArea: { borderWidth: '2px', borderStyle: 'dashed', borderColor: 'var(--border-accent)', borderRadius: '10px', padding: '20px', textAlign: 'center' },
+    uploadLabel: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' },
+    previewGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px', marginTop: '10px' },
+    previewItem: { position: 'relative' },
+    previewImg: { width: '100%', height: '80px', objectFit: 'cover', borderRadius: '6px' },
+    removeImg: { position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 };
 
 export default EditAnunt;

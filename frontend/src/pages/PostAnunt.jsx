@@ -11,6 +11,8 @@ function PostAnunt() {
     const [aiLoading, setAiLoading] = useState(false);
     const [descLoading, setDescLoading] = useState(false);
     const [spamWarning, setSpamWarning] = useState('');
+    const [imagini, setImagini] = useState([]);
+    const [uploadProgress, setUploadProgress] = useState(false);
     const [formData, setFormData] = useState({
         titlu: '', descriere: '', pret: '',
         marca: '', model: '', an: '',
@@ -28,13 +30,22 @@ function PostAnunt() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Completeaza campurile din text in limbaj natural
     const handleAutofill = async () => {
         if (!aiText.trim()) return;
         setAiLoading(true);
+        setError('');
         try {
             const response = await api.post('/ai/completeaza', { text: aiText });
             const data = response.data;
+
+            // Verificam daca AI-ul a gasit ceva util
+            const campuriCompletate = Object.values(data).filter(v => v !== null && v !== '').length;
+
+            if (campuriCompletate === 0) {
+                setError('AI could not extract any details. Try adding more information like brand, model, year or price.');
+                return;
+            }
+
             setFormData(prev => ({
                 ...prev,
                 titlu: data.titlu || prev.titlu,
@@ -50,14 +61,23 @@ function PostAnunt() {
                 capacitate_cilindrica: data.capacitate_cilindrica || prev.capacitate_cilindrica,
                 pret: data.pret || prev.pret,
             }));
+
+            // Mesaj de succes cu nr de campuri completate
+            setError('');
+
         } catch (err) {
-            setError('AI autofill failed. Please try again.');
+            const status = err.response?.status;
+            if (status === 429) {
+                setError('AI is busy right now. Please wait a few seconds and try again.');
+            } else if (status === 500) {
+                setError('AI could not understand the input. Try rephrasing — e.g. "2020 BMW 320d, automatic, 50000 km, 190 HP, asking 25000 euros"');
+            } else {
+                setError('AI autofill failed. Please try again.');
+            }
         } finally {
             setAiLoading(false);
         }
     };
-
-    // Genereaza descriere cu AI
     const handleGenerateDesc = async () => {
         setDescLoading(true);
         try {
@@ -77,7 +97,6 @@ function PostAnunt() {
         setLoading(true);
 
         try {
-            // Verifica spam inainte de a posta
             const spamRes = await api.post('/ai/spam', {
                 titlu: formData.titlu,
                 descriere: formData.descriere,
@@ -89,12 +108,24 @@ function PostAnunt() {
                 return;
             }
 
-            await api.post('/anunturi', formData);
+            const anuntRes = await api.post('/anunturi', formData);
+            const newAnuntId = anuntRes.data.id;
+
+            if (imagini.length > 0) {
+                setUploadProgress(true);
+                const formDataImagini = new FormData();
+                imagini.forEach(img => formDataImagini.append('imagini', img));
+                await api.post(`/anunturi/${newAnuntId}/imagini`, formDataImagini, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+            }
+
             navigate('/listings');
         } catch (err) {
             setError(err.response?.data?.mesaj || 'Something went wrong');
         } finally {
             setLoading(false);
+            setUploadProgress(false);
         }
     };
 
@@ -109,7 +140,6 @@ function PostAnunt() {
                 {error && <div style={styles.errorBox}>{error}</div>}
                 {spamWarning && <div style={styles.spamBox}>{spamWarning}</div>}
 
-                {/* AI Autofill Section */}
                 <div style={styles.aiSection}>
                     <div style={styles.aiHeader}>
                         <div style={styles.aiIconBox}>✨</div>
@@ -138,7 +168,6 @@ function PostAnunt() {
 
                 <form onSubmit={handleSubmit}>
 
-                    {/* Informatii de baza */}
                     <div style={styles.section}>
                         <div style={styles.sectionTitle}>Basic information</div>
                         <div style={styles.grid2}>
@@ -154,12 +183,7 @@ function PostAnunt() {
                         <div style={styles.fieldGroup}>
                             <div style={styles.labelRow}>
                                 <label style={styles.label}>Description</label>
-                                <button
-                                    type="button"
-                                    style={styles.btnGenDesc}
-                                    onClick={handleGenerateDesc}
-                                    disabled={descLoading}
-                                >
+                                <button type="button" style={styles.btnGenDesc} onClick={handleGenerateDesc} disabled={descLoading}>
                                     {descLoading ? 'Generating...' : '✨ Generate with AI'}
                                 </button>
                             </div>
@@ -174,7 +198,6 @@ function PostAnunt() {
                         </div>
                     </div>
 
-                    {/* Detalii masina */}
                     <div style={styles.section}>
                         <div style={styles.sectionTitle}>Car details</div>
                         <div style={styles.grid3}>
@@ -268,12 +291,61 @@ function PostAnunt() {
                         </div>
                     </div>
 
+                    <div style={styles.section}>
+                        <div style={styles.sectionTitle}>Photos</div>
+                        <div style={styles.uploadArea}>
+                            <input
+                                type="file"
+                                id="imagini"
+                                multiple
+                                accept="image/*"
+                                style={{display: 'none'}}
+                                onChange={(e) => setImagini(Array.from(e.target.files))}
+                            />
+                            <label htmlFor="imagini" style={styles.uploadLabel}>
+                                <div style={{fontSize: '32px'}}>📷</div>
+                                <div style={{fontSize: '13px', color: 'var(--text-primary)'}}>Click to add photos</div>
+                                <div style={{fontSize: '11px', color: 'var(--text-muted)'}}>Max 5 photos · JPG, PNG, WebP · Max 5MB each</div>
+                            </label>
+                            {imagini.length > 0 && (
+                                <div style={styles.previewGrid}>
+                                    {imagini.map((img, i) => (
+                                        <div
+                                            key={i}
+                                            draggable
+                                            onDragStart={(e) => e.dataTransfer.setData('text/plain', String(i))}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                                                const newArr = [...imagini];
+                                                const [moved] = newArr.splice(fromIndex, 1);
+                                                newArr.splice(i, 0, moved);
+                                                setImagini(newArr);
+                                            }}
+                                            style={{...styles.previewItem, cursor: 'grab'}}
+                                        >
+                                            <img src={URL.createObjectURL(img)} alt={`preview ${i}`} style={styles.previewImg} />
+                                            {i === 0 && <div style={styles.mainBadge}>Main</div>}
+                                            <button
+                                                type="button"
+                                                style={styles.removeImg}
+                                                onClick={() => setImagini(imagini.filter((_, idx) => idx !== i))}
+                                            >✕</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <div style={styles.formFooter}>
                         <button type="button" style={styles.btnCancel} onClick={() => navigate('/listings')}>Cancel</button>
                         <button type="submit" style={styles.btnSubmit} disabled={loading}>
-                            {loading ? 'Checking & posting...' : 'Post listing'}
+                            {loading ? (uploadProgress ? 'Uploading photos...' : 'Checking & posting...') : 'Post listing'}
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -281,6 +353,7 @@ function PostAnunt() {
 }
 
 const styles = {
+    mainBadge: { position: 'absolute', bottom: '4px', left: '4px', background: 'var(--accent)', color: 'var(--text-primary)', fontSize: '9px', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' },
     page: { minHeight: '100vh', padding: '24px', background: 'var(--bg-primary)' },
     container: { maxWidth: '800px', margin: '0 auto' },
     header: { marginBottom: '24px' },
@@ -309,9 +382,15 @@ const styles = {
     textarea: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' },
     bodyTypeGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginTop: '6px' },
     bodyTypeCard: { borderWidth: '1px', borderStyle: 'solid', borderRadius: '8px', padding: '10px 6px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' },
-    formFooter: { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' },
+    formFooter: { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px', marginBottom: '24px' },
     btnCancel: { background: 'transparent', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', color: 'var(--text-muted)', borderRadius: '8px', padding: '10px 20px', fontSize: '13px' },
     btnSubmit: { background: 'var(--accent)', color: 'var(--text-primary)', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: '500' },
+    uploadArea: { borderWidth: '2px', borderStyle: 'dashed', borderColor: 'var(--border-accent)', borderRadius: '10px', padding: '20px', textAlign: 'center' },
+    uploadLabel: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' },
+    previewGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px', marginTop: '16px' },
+    previewItem: { position: 'relative' },
+    previewImg: { width: '100%', height: '80px', objectFit: 'cover', borderRadius: '6px' },
+    removeImg: { position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 };
 
 export default PostAnunt;

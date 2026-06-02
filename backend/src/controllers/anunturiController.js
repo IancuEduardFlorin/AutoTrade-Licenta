@@ -59,7 +59,6 @@ export const createAnunt = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ mesaj: errors.array()[0].msg });
     }
-    // ... restul codului rămâne la fel
     try {
         const {
             titlu, descriere, pret, marca, model, an,
@@ -67,7 +66,7 @@ export const createAnunt = async (req, res) => {
             putere, tractiune, capacitate_cilindrica, caroserie
         } = req.body;
 
-        await db.query(
+        const [result] = await db.query(
             `INSERT INTO anunturi
              (titlu, descriere, pret, marca, model, an, kilometraj, motorizare,
               transmisie, putere, tractiune, capacitate_cilindrica, caroserie, user_id)
@@ -76,7 +75,7 @@ export const createAnunt = async (req, res) => {
                 transmisie, putere, tractiune, capacitate_cilindrica, caroserie, req.user.id]
         );
 
-        res.status(201).json({ mesaj: 'Anunt adaugat cu succes!' });
+        res.status(201).json({ mesaj: 'Anunt adaugat cu succes!', id: result.insertId });
     } catch (error) {
         res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
     }

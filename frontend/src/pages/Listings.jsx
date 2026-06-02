@@ -23,9 +23,10 @@ function Listings() {
     });
     const [sortare, setSortare] = useState('newest');
     const [yearError, setYearError] = useState('');
-
+    const [imaginiAnunturi, setImaginiAnunturi] = useState({});
     const fetchAnunturi = async () => {
         setLoading(true);
+        setImaginiAnunturi({});
         try {
             let response;
             if (search.trim()) {
@@ -44,11 +45,27 @@ function Listings() {
                 response = await api.get(`/anunturi/search/avansat?${params.toString()}`);
             }
             setAnunturi(response.data);
+            fetchImaginiPrincipale(response.data);
         } catch (err) {
             console.error(err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchImaginiPrincipale = async (anunturiList) => {
+        const imaginiMap = {};
+        await Promise.all(
+            anunturiList.map(async (anunt) => {
+                try {
+                    const res = await api.get(`/anunturi/${anunt.id}/imagini`);
+                    if (res.data.length > 0) {
+                        imaginiMap[anunt.id] = res.data[0].url;
+                    }
+                } catch { }
+            })
+        );
+        setImaginiAnunturi(imaginiMap);
     };
 
     useEffect(() => {
@@ -289,9 +306,16 @@ function Listings() {
                             {anunturiSortate.map(anunt => (
                                 <Link to={`/listings/${anunt.id}`} key={anunt.id} style={styles.card}>
                                     <div style={styles.cardImg}>
-                                        <span style={{fontSize: '36px'}}>🚗</span>
-                                    </div>
-                                    <div style={styles.cardBody}>
+                                        {imaginiAnunturi[anunt.id] ? (
+                                            <img
+                                                src={imaginiAnunturi[anunt.id]}
+                                                alt={anunt.titlu}
+                                                style={{width: '100%', height: '100%', objectFit: 'cover'}}
+                                            />
+                                        ) : (
+                                            <span style={{fontSize: '36px'}}>🚗</span>
+                                        )}
+                                    </div>                                    <div style={styles.cardBody}>
                                         <div style={styles.cardTop}>
                                             <div style={styles.cardTitle}>{anunt.titlu}</div>
                                             <div style={styles.cardPrice}>{Number(anunt.pret).toLocaleString()} €</div>

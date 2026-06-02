@@ -13,9 +13,17 @@ import userRoutes from './routes/userRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import mesajeRoutes from './routes/mesajeRoutes.js';
+import imaginiRoutes from './routes/imaginiRoutes.js';
 
 dotenv.config();
-
+// Mentine conexiunea MySQL activa
+setInterval(async () => {
+    try {
+        await db.query('SELECT 1');
+    } catch (err) {
+        console.error('DB keepalive error:', err.message);
+    }
+}, 30000);
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -77,6 +85,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/mesaje', mesajeRoutes);
+app.use('/api/anunturi', imaginiRoutes);
 
 app.get('/', (req, res) => {
     res.send('API AutoTrade functional!');
