@@ -25,8 +25,7 @@ function Navbar() {
                 {token && (
                     <Link to="/listings/new" style={{...styles.pill, ...(active === 'post' ? styles.pillActive : {})}} onClick={() => setActive('post')}>Post an ad</Link>
                 )}
-                <Link to="/listings" style={{...styles.pill, ...(active === 'news' ? styles.pillActive : {})}} onClick={() => setActive('news')}>News</Link>
-            </div>
+                <Link to="/news" style={{...styles.pill, ...(active === 'news' ? styles.pillActive : {})}} onClick={() => setActive('news')}>News</Link>            </div>
 
             <div style={styles.navActions}>
                 {token ? (

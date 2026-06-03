@@ -12,7 +12,13 @@ function Admin() {
     const [loading, setLoading] = useState(true);
     const [mesaj, setMesaj] = useState('');
     const [error, setError] = useState('');
-
+    const [articole, setArticole] = useState([]);
+    const [showNewsForm, setShowNewsForm] = useState(false);
+    const [newsForm, setNewsForm] = useState({
+        titlu: '', continut: '', categorie: 'News', status: 'draft'
+    });
+    const [newsImagine, setNewsImagine] = useState(null);
+    const [editingNews, setEditingNews] = useState(null);
     if (!token || user?.rol !== 'admin') {
         navigate('/');
         return null;
@@ -21,12 +27,14 @@ function Admin() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [utilizatoriRes, anunturiRes] = await Promise.all([
+                const [utilizatoriRes, anunturiRes, newsRes] = await Promise.all([
                     api.get('/admin/utilizatori'),
                     api.get('/admin/anunturi'),
+                    api.get('/news/admin/toate'),
                 ]);
                 setUtilizatori(utilizatoriRes.data);
                 setAnunturi(anunturiRes.data);
+                setArticole(newsRes.data);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -77,7 +85,60 @@ function Admin() {
             showMesaj(err.response?.data?.mesaj || 'Something went wrong', true);
         }
     };
+    const handleSaveNews = async () => {
+        try {
+            const formData = new FormData();
+            formData.append('titlu', newsForm.titlu);
+            formData.append('continut', newsForm.continut);
+            formData.append('categorie', newsForm.categorie);
+            formData.append('status', newsForm.status);
+            if (newsImagine) formData.append('imagine', newsImagine);
 
+            if (editingNews) {
+                await api.put(`/news/${editingNews.id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                showMesaj('Article updated successfully!');
+            } else {
+                await api.post('/news', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                showMesaj('Article published successfully!');
+            }
+
+            // Refresh news
+            const newsRes = await api.get('/news/admin/toate');
+            setArticole(newsRes.data);
+            setShowNewsForm(false);
+            setEditingNews(null);
+            setNewsForm({ titlu: '', continut: '', categorie: 'News', status: 'draft' });
+            setNewsImagine(null);
+        } catch (err) {
+            showMesaj(err.response?.data?.mesaj || 'Something went wrong', true);
+        }
+    };
+
+    const handleDeleteNews = async (id) => {
+        if (!window.confirm('Delete this article?')) return;
+        try {
+            await api.delete(`/news/${id}`);
+            setArticole(articole.filter(a => a.id !== id));
+            showMesaj('Article deleted successfully!');
+        } catch (err) {
+            showMesaj(err.response?.data?.mesaj || 'Something went wrong', true);
+        }
+    };
+
+    const handleEditNews = (articol) => {
+        setEditingNews(articol);
+        setNewsForm({
+            titlu: articol.titlu,
+            continut: articol.continut,
+            categorie: articol.categorie,
+            status: articol.status,
+        });
+        setShowNewsForm(true);
+    };
     if (loading) return <div style={styles.loading}>Loading...</div>;
 
     return (
@@ -114,6 +175,7 @@ function Admin() {
                     {[
                         { key: 'utilizatori', label: `Users (${utilizatori.length})` },
                         { key: 'anunturi', label: `Listings (${anunturi.length})` },
+                        { key: 'news', label: `News (${articole.length})` },
                     ].map(tab => (
                         <button
                             key={tab.key}
@@ -243,6 +305,138 @@ function Admin() {
                         </div>
                     </div>
                 )}
+                {activeTab === 'news' && (
+                    <div style={styles.card}>
+                        <div style={styles.cardTitleRow}>
+                            <div style={styles.cardTitle}>News & Articles</div>
+                            <button style={styles.btnNew} onClick={() => { setShowNewsForm(true); setEditingNews(null); setNewsForm({ titlu: '', continut: '', categorie: 'News', status: 'draft' }); }}>
+                                + New article
+                            </button>
+                        </div>
+
+                        {/* Form adaugare/editare */}
+                        {showNewsForm && (
+                            <div style={styles.newsForm}>
+                                <div style={styles.newsFormTitle}>{editingNews ? 'Edit article' : 'New article'}</div>
+
+                                <div style={styles.fieldGroup}>
+                                    <label style={styles.label}>Title *</label>
+                                    <input
+                                        style={styles.input}
+                                        value={newsForm.titlu}
+                                        onChange={(e) => setNewsForm({ ...newsForm, titlu: e.target.value })}
+                                        placeholder="Article title..."
+                                    />
+                                </div>
+
+                                <div style={styles.grid2}>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>Category</label>
+                                        <select style={styles.select} value={newsForm.categorie} onChange={(e) => setNewsForm({ ...newsForm, categorie: e.target.value })}>
+                                            <option value="News">News</option>
+                                            <option value="Electric">Electric</option>
+                                            <option value="Guide">Guide</option>
+                                            <option value="Review">Review</option>
+                                            <option value="Tips">Tips</option>
+                                        </select>
+                                    </div>
+                                    <div style={styles.fieldGroup}>
+                                        <label style={styles.label}>Status</label>
+                                        <select style={styles.select} value={newsForm.status} onChange={(e) => setNewsForm({ ...newsForm, status: e.target.value })}>
+                                            <option value="draft">Draft</option>
+                                            <option value="published">Published</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style={styles.fieldGroup}>
+                                    <label style={styles.label}>Cover image</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setNewsImagine(e.target.files[0])}
+                                        style={styles.input}
+                                    />
+                                    {editingNews?.imagine_url && !newsImagine && (
+                                        <img src={editingNews.imagine_url} alt="current" style={{width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginTop: '8px'}} />
+                                    )}
+                                </div>
+
+                                <div style={styles.fieldGroup}>
+                                    <label style={styles.label}>Content *</label>
+                                    <textarea
+                                        style={{...styles.input, minHeight: '200px', resize: 'vertical', padding: '10px'}}
+                                        value={newsForm.continut}
+                                        onChange={(e) => setNewsForm({ ...newsForm, continut: e.target.value })}
+                                        placeholder="Write your article here..."
+                                    />
+                                </div>
+
+                                <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '8px'}}>
+                                    <button style={styles.btnReset} onClick={() => { setShowNewsForm(false); setEditingNews(null); }}>Cancel</button>
+                                    <button style={styles.btnNew} onClick={handleSaveNews}>
+                                        {editingNews ? 'Save changes' : 'Publish article'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Lista articole */}
+                        {articole.length === 0 ? (
+                            <div style={styles.empty}>No articles yet. Create your first article!</div>
+                        ) : (
+                            <div style={styles.tableWrap}>
+                                <table style={styles.table}>
+                                    <thead>
+                                    <tr>
+                                        <th style={styles.th}>Title</th>
+                                        <th style={styles.th}>Category</th>
+                                        <th style={styles.th}>Status</th>
+                                        <th style={styles.th}>Date</th>
+                                        <th style={styles.th}>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {articole.map(articol => (
+                                        <tr key={articol.id} style={styles.tr}>
+                                            <td style={styles.td}>
+                                                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                                    {articol.imagine_url && (
+                                                        <img src={articol.imagine_url} alt="" style={{width: '40px', height: '30px', objectFit: 'cover', borderRadius: '4px'}} />
+                                                    )}
+                                                    <span style={{fontSize: '13px', color: 'var(--text-primary)'}}>{articol.titlu}</span>
+                                                </div>
+                                            </td>
+                                            <td style={styles.td}>
+                                    <span style={{...styles.roleBadge, background: 'var(--pill-bg)', borderColor: 'var(--border)', color: 'var(--accent-light)'}}>
+                                        {articol.categorie}
+                                    </span>
+                                            </td>
+                                            <td style={styles.td}>
+                                    <span style={{
+                                        ...styles.roleBadge,
+                                        background: articol.status === 'published' ? '#0d2010' : 'var(--pill-bg)',
+                                        borderColor: articol.status === 'published' ? '#2a4a20' : 'var(--border)',
+                                        color: articol.status === 'published' ? '#80c880' : 'var(--text-muted)',
+                                    }}>
+                                        {articol.status === 'published' ? '● Published' : '○ Draft'}
+                                    </span>
+                                            </td>
+                                            <td style={styles.td}>{new Date(articol.creat_la).toLocaleDateString()}</td>
+                                            <td style={styles.td}>
+                                                <div style={styles.actionBtns}>
+                                                    <button style={styles.btnRole} onClick={() => handleEditNews(articol)}>Edit</button>
+                                                    <button style={styles.btnDel} onClick={() => handleDeleteNews(articol.id)}>Delete</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
 
             </div>
         </div>
@@ -250,6 +444,14 @@ function Admin() {
 }
 
 const styles = {
+    newsForm: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border-accent)', borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' },
+    newsFormTitle: { fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px' },
+    grid2: { display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px' },
+    fieldGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
+    label: { fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500' },
+    input: { background: 'var(--bg-card)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit' },
+    select: { background: 'var(--bg-card)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'inherit' },
+    btnReset: { background: 'transparent', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', color: 'var(--text-muted)', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit' },
     page: { minHeight: '100vh', padding: '24px', background: 'var(--bg-primary)' },
     loading: { textAlign: 'center', padding: '60px', color: 'var(--text-muted)' },
     container: { maxWidth: '1000px', margin: '0 auto' },

@@ -1,9 +1,60 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 function Home() {
     const navigate = useNavigate();
     const [search, setSearch] = useState('');
+    const [stats, setStats] = useState({ anunturi: 0, users: 0, today: 0 });
+    const [recentAnunturi, setRecentAnunturi] = useState([]);
+    const [imaginiRecente, setImaginiRecente] = useState({});
+    const [brands, setBrands] = useState([]);
+    const [newsArticole, setNewsArticole] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [statsRes, anunturiRes] = await Promise.all([
+                    api.get('/stats'),
+                    api.get('/anunturi/search/avansat?'),
+                ]);
+                setStats(statsRes.data);
+
+                const newsRes = await api.get('/news');
+                setNewsArticole(newsRes.data.slice(0, 3));
+
+                const ultimele = anunturiRes.data.slice(0, 3);
+                setRecentAnunturi(ultimele);
+
+                const imaginiMap = {};
+                await Promise.all(ultimele.map(async (anunt) => {
+                    try {
+                        const imgRes = await api.get(`/anunturi/${anunt.id}/imagini`);
+                        if (imgRes.data.length > 0) {
+                            imaginiMap[anunt.id] = imgRes.data[0].url;
+                        }
+                    } catch { }
+                }));
+                setImaginiRecente(imaginiMap);
+
+                const brandCount = {};
+                anunturiRes.data.forEach(a => {
+                    if (a.marca) {
+                        brandCount[a.marca] = (brandCount[a.marca] || 0) + 1;
+                    }
+                });
+                const topBrands = Object.entries(brandCount)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 6)
+                    .map(([name, count]) => ({ name, count }));
+                setBrands(topBrands);
+
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchData();
+    }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -61,7 +112,7 @@ function Home() {
                         </div>
                         <div style={styles.featuredFooter}>
                             <span style={styles.featuredPrice}>12.000 €</span>
-                            <Link to="/listings/3" style={styles.btnView}>View →</Link>
+                            <Link to="/listings/2" style={styles.btnView}>View →</Link>
                         </div>
                     </div>
                 </div>
@@ -70,10 +121,10 @@ function Home() {
             {/* Stats Bar */}
             <div style={styles.statsBar}>
                 {[
-                    { num: '12.400', label: 'Active listings' },
-                    { num: '8.300', label: 'Registered users' },
-                    { num: '340', label: 'New today' },
-                    { num: '96%', label: 'Satisfaction rate' },
+                    { num: stats.anunturi.toLocaleString(), label: 'Active listings' },
+                    { num: stats.users.toLocaleString(), label: 'Registered users' },
+                    { num: stats.today.toLocaleString(), label: 'New today' },
+                    { num: '⭐ 4.9', label: 'Satisfaction rate' },
                 ].map((s, i) => (
                     <div key={i} style={styles.statItem}>
                         <div style={styles.statNum}>{s.num}</div>
@@ -91,15 +142,12 @@ function Home() {
                         <Link to="/listings" style={styles.sectionLink}>View all →</Link>
                     </div>
                     <div style={styles.brandsGrid}>
-                        {[
-                            { name: 'Volkswagen', count: '1.240' },
-                            { name: 'BMW', count: '980' },
-                            { name: 'Audi', count: '870' },
-                            { name: 'Mercedes', count: '760' },
-                            { name: 'Toyota', count: '640' },
-                            { name: 'Renault', count: '520' },
-                        ].map(brand => (
-                            <div key={brand.name} style={styles.brandCard} onClick={() => navigate('/listings')}>
+                        {brands.map(brand => (
+                            <div
+                                key={brand.name}
+                                style={styles.brandCard}
+                                onClick={() => navigate(`/listings?marca=${brand.name}`)}
+                            >
                                 <div style={styles.brandEmoji}>🚘</div>
                                 <div style={styles.brandName}>{brand.name}</div>
                                 <div style={styles.brandCount}>{brand.count} ads</div>
@@ -131,22 +179,26 @@ function Home() {
                         <span style={styles.sectionLink}>All articles →</span>
                     </div>
                     <div style={styles.newsGrid}>
-                        {[
-                            { emoji: '⚡', cat: 'Electric', title: 'Top 5 affordable EVs to buy in 2026', date: 'Apr 18, 2026' },
-                            { emoji: '🛡️', cat: 'Guide', title: 'How to sell your car safely online', date: 'Apr 15, 2026' },
-                            { emoji: '🏎️', cat: 'Review', title: 'BMW 320d 2024 long-term review', date: 'Apr 12, 2026' },
-                        ].map(n => (
-                            <div key={n.title} style={styles.newsCard}>
-                                <div style={styles.newsThumb}>{n.emoji}</div>
-                                <div style={styles.newsBody}>
-                                    <div style={styles.newsCat}>{n.cat}</div>
-                                    <div style={styles.newsTitle}>{n.title}</div>
-                                    <div style={styles.newsDate}>{n.date}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                        {newsArticole.length === 0 ? (
+                            <div style={{color: 'var(--text-muted)', fontSize: '13px'}}>No articles yet.</div>
+                        ) : (
+                            newsArticole.map(articol => (
+                                <Link to={`/news/${articol.id}`} key={articol.id} style={{...styles.newsCard, textDecoration: 'none'}}>
+                                    <div style={styles.newsThumb}>
+                                        {articol.imagine_url
+                                            ? <img src={articol.imagine_url} alt={articol.titlu} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                                            : '📰'
+                                        }
+                                    </div>
+                                    <div style={styles.newsBody}>
+                                        <div style={styles.newsCat}>{articol.categorie}</div>
+                                        <div style={styles.newsTitle}>{articol.titlu}</div>
+                                        <div style={styles.newsDate}>{new Date(articol.creat_la).toLocaleDateString()}</div>
+                                    </div>
+                                </Link>
+                            ))
+                        )}
+                    </div>                </div>
 
                 {/* Recently Added */}
                 <div style={styles.section}>
@@ -155,22 +207,39 @@ function Home() {
                         <Link to="/listings" style={styles.sectionLink}>See all listings →</Link>
                     </div>
                     <div style={styles.recentList}>
-                        {[
-                            { id: 3, title: 'Volkswagen Golf 7 · 2018', sub: 'Manual · 1.6 TDI · 85,000 km', price: '12.000 €', time: '2h ago' },
-                            { id: 2, title: 'BMW Seria 3 320d · 2020', sub: 'Automatic · 2.0 Diesel · 62,000 km', price: '27.500 €', time: '1 day ago' },
-                        ].map(car => (
-                            <Link to={`/listings/${car.id}`} key={car.id} style={styles.miniCard}>
-                                <div style={styles.miniImg}>🚗</div>
-                                <div style={styles.miniInfo}>
-                                    <div style={styles.miniTitle}>{car.title}</div>
-                                    <div style={styles.miniSub}>{car.sub}</div>
-                                </div>
-                                <div style={styles.miniRight}>
-                                    <div style={styles.miniPrice}>{car.price}</div>
-                                    <div style={styles.miniTime}>{car.time}</div>
-                                </div>
-                            </Link>
-                        ))}
+                        {recentAnunturi.length === 0 ? (
+                            <div style={{color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center', padding: '20px'}}>
+                                No listings yet.
+                            </div>
+                        ) : (
+                            recentAnunturi.map(anunt => (
+                                <Link to={`/listings/${anunt.id}`} key={anunt.id} style={styles.miniCard}>
+                                    <div style={styles.miniImg}>
+                                        {imaginiRecente[anunt.id] ? (
+                                            <img
+                                                src={imaginiRecente[anunt.id]}
+                                                alt={anunt.titlu}
+                                                style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px'}}
+                                            />
+                                        ) : (
+                                            <span style={{fontSize: '22px'}}>🚗</span>
+                                        )}
+                                    </div>
+                                    <div style={styles.miniInfo}>
+                                        <div style={styles.miniTitle}>{anunt.titlu}</div>
+                                        <div style={styles.miniSub}>
+                                            {anunt.an} · {anunt.kilometraj?.toLocaleString()} km · {anunt.transmisie}
+                                        </div>
+                                    </div>
+                                    <div style={styles.miniRight}>
+                                        <div style={styles.miniPrice}>{Number(anunt.pret).toLocaleString()} €</div>
+                                        <div style={styles.miniTime}>
+                                            {new Date(anunt.creat_la).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))
+                        )}
                     </div>
                 </div>
 

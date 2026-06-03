@@ -12,6 +12,8 @@ import PostAnunt from './pages/PostAnunt';
 import EditAnunt from './pages/EditAnunt';
 import Chat from './pages/Chat';
 import AiChatbot from './components/AiChatbot';
+import News from './pages/News';
+import NewsDetail from './pages/NewsDetail';
 
 function App() {
     return (
@@ -29,6 +31,8 @@ function App() {
                 <Route path="/listings/new" element={<PostAnunt />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/chat/:userId" element={<Chat />} />
+                <Route path="/news" element={<News />} />
+                <Route path="/news/:id" element={<NewsDetail />} />
             </Routes>
             <Footer />
             <AiChatbot />

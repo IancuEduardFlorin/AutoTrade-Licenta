@@ -14,6 +14,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import mesajeRoutes from './routes/mesajeRoutes.js';
 import imaginiRoutes from './routes/imaginiRoutes.js';
+import newsRoutes from './routes/newsRoutes.js';
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
         origin: 'http://localhost:5173',
-        methods: ['GET', 'POST'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
     },
 });
 
@@ -40,7 +41,7 @@ app.use(helmet({
     crossOriginResourcePolicy: false,
 }));
 
-// CORS
+// CORS - trebuie sa fie primul middleware
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -49,7 +50,7 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
-// Rate limiting strict pentru autentificare
+// Rate limiting
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
@@ -58,7 +59,6 @@ const authLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-// Rate limiting pentru AI
 const aiLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 10,
@@ -67,7 +67,6 @@ const aiLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-// Rate limiting general - fara limita pentru imagini
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 2000,
@@ -81,6 +80,7 @@ app.use('/api/', generalLimiter);
 app.use('/api/auth', authLimiter);
 app.use('/api/ai', aiLimiter);
 
+// Rute
 app.use('/api/auth', authRoutes);
 app.use('/api/anunturi', anunturiRoutes);
 app.use('/api/favorite', favoriteRoutes);
@@ -89,6 +89,24 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/mesaje', mesajeRoutes);
 app.use('/api/anunturi', imaginiRoutes);
+app.use('/api/news', newsRoutes);
+
+app.get('/api/stats', async (req, res) => {
+    try {
+        const [anunturi] = await db.query('SELECT COUNT(*) as total FROM anunturi');
+        const [users] = await db.query('SELECT COUNT(*) as total FROM users');
+        const [today] = await db.query(
+            'SELECT COUNT(*) as total FROM anunturi WHERE DATE(creat_la) = CURDATE()'
+        );
+        res.json({
+            anunturi: anunturi[0].total,
+            users: users[0].total,
+            today: today[0].total,
+        });
+    } catch (error) {
+        res.status(500).json({ mesaj: 'Eroare server' });
+    }
+});
 
 app.get('/', (req, res) => {
     res.send('API AutoTrade functional!');
