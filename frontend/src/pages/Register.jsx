@@ -20,14 +20,12 @@ function Register() {
             setError('Passwords do not match');
             return;
         }
-
         if (formData.parola.length < 6) {
             setError('Password must be at least 6 characters');
             return;
         }
 
         setLoading(true);
-
         try {
             await api.post('/auth/register', {
                 nume: formData.nume,
@@ -43,11 +41,12 @@ function Register() {
     };
 
     return (
-        <div style={styles.page}>
-            <div style={styles.card}>
-
+        <div style={styles.page} className="rsp-auth-page">
+            <div style={styles.card} className="rsp-auth-card">
                 <div style={styles.header}>
-                    <Link to="/" style={styles.logo}>Auto<span style={styles.logoAccent}>Trade</span></Link>
+                    <Link to="/" style={styles.logo}>
+                        Auto<span style={styles.logoAccent}>Trade</span>
+                    </Link>
                     <h2 style={styles.title}>Create an account</h2>
                     <p style={styles.subtitle}>Join AutoTrade today</p>
                 </div>
@@ -107,16 +106,15 @@ function Register() {
                         />
                     </div>
 
-                    <button type="submit" style={styles.btnSubmit} disabled={loading}>
+                    <button type="submit" style={styles.btnSubmit} className="btn-primary-glow" disabled={loading}>
                         {loading ? 'Creating account...' : 'Create account'}
                     </button>
                 </form>
 
                 <p style={styles.footer}>
                     Already have an account?{' '}
-                    <Link to="/login" style={styles.footerLink}>Sign in</Link>
+                    <Link to="/login" style={styles.footerLink} className="link-glow">Sign in</Link>
                 </p>
-
             </div>
         </div>
     );
@@ -128,16 +126,16 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-primary)',
         padding: '20px',
     },
     card: {
         background: 'var(--bg-card)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: 'var(--border-accent)',
-        borderRadius: '14px',
-        padding: '32px',
+        backdropFilter: 'var(--glass-blur-heavy)',
+        WebkitBackdropFilter: 'var(--glass-blur-heavy)',
+        border: '1px solid var(--border)',
+        boxShadow: '0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+        borderRadius: '18px',
+        padding: '36px',
         width: '100%',
         maxWidth: '400px',
     },
@@ -146,15 +144,16 @@ const styles = {
         marginBottom: '28px',
     },
     logo: {
-        fontSize: '20px',
+        fontSize: '22px',
         fontWeight: '500',
         color: 'var(--text-primary)',
         textDecoration: 'none',
         display: 'block',
-        marginBottom: '16px',
+        marginBottom: '20px',
     },
     logoAccent: {
         color: 'var(--accent-light)',
+        textShadow: '0 0 20px rgba(129, 151, 172, 0.4)',
     },
     title: {
         fontSize: '20px',
@@ -167,11 +166,11 @@ const styles = {
         color: 'var(--text-muted)',
     },
     errorBox: {
-        background: '#2a1010',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: '#5a2020',
-        color: '#f08080',
+        background: 'var(--color-error-bg)',
+        backdropFilter: 'var(--glass-blur)',
+        WebkitBackdropFilter: 'var(--glass-blur)',
+        border: '1px solid var(--color-error-border)',
+        color: 'var(--color-error)',
         borderRadius: '8px',
         padding: '10px 14px',
         fontSize: '13px',
@@ -193,10 +192,8 @@ const styles = {
         fontWeight: '500',
     },
     input: {
-        background: 'var(--bg-navbar)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: 'var(--border)',
+        background: 'var(--glass-input)',
+        border: '1px solid var(--border)',
         borderRadius: '8px',
         padding: '10px 14px',
         color: 'var(--text-primary)',
@@ -207,7 +204,7 @@ const styles = {
         boxSizing: 'border-box',
     },
     btnSubmit: {
-        background: 'var(--accent)',
+        background: 'var(--btn-gradient)',
         color: 'var(--text-primary)',
         border: 'none',
         borderRadius: '8px',
@@ -215,10 +212,11 @@ const styles = {
         fontSize: '14px',
         fontWeight: '500',
         marginTop: '8px',
+        boxShadow: '0 4px 16px rgba(49, 75, 110, 0.45)',
     },
     footer: {
         textAlign: 'center',
-        marginTop: '20px',
+        marginTop: '22px',
         fontSize: '13px',
         color: 'var(--text-muted)',
     },

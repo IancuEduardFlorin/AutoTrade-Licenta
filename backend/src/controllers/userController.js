@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 export const getProfil = async (req, res) => {
     try {
         const [users] = await db.query(
-            'SELECT id, nume, email, rol, creat_la FROM users WHERE id = ?',
+            'SELECT id, nume, email, rol, creat_la, last_seen FROM users WHERE id = ?',
             [req.user.id]
         );
 
@@ -89,6 +89,24 @@ export const getAnunturiProprii = async (req, res) => {
         );
 
         res.json(anunturi);
+    } catch (error) {
+        res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
+    }
+};
+
+// Vezi profilul public al unui utilizator
+export const getPublicProfil = async (req, res) => {
+    try {
+        const [users] = await db.query(
+            'SELECT id, nume, creat_la, last_seen FROM users WHERE id = ?',
+            [req.params.id]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ mesaj: 'Utilizatorul nu a fost gasit' });
+        }
+
+        res.json(users[0]);
     } catch (error) {
         res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
     }

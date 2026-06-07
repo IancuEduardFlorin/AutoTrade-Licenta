@@ -112,13 +112,66 @@ app.get('/', (req, res) => {
     res.send('API AutoTrade functional!');
 });
 
+// userId -> Set<socketId>  (handles multiple tabs per user)
+const onlineUsers = new Map();
+
 // Socket.io
 io.on('connection', (socket) => {
-    console.log('User conectat:', socket.id);
+    console.log('[Socket] User connected:', socket.id);
+    let connectedUserId = null;
 
+    // ── MESSAGING ──────────────────────────────────────────
+    // Puts this socket into the user's message-routing room.
+    // sendMessage targets these rooms via io.to(`user_${id}`).
     socket.on('join', (userId) => {
         socket.join(`user_${userId}`);
-        console.log(`User ${userId} a intrat in camera user_${userId}`);
+        console.log(`[Socket] join: userId=${userId} joined room user_${userId}`);
+    });
+
+    // ── PRESENCE ───────────────────────────────────────────
+    // Separate event — only updates the online Map and broadcasts
+    // status. Does NOT touch rooms so messaging is unaffected.
+    socket.on('user_online', (userId) => {
+        connectedUserId = userId;
+        console.log(`[Socket] user_online received: userId=${userId}, socketId=${socket.id}`);
+
+        if (!onlineUsers.has(userId)) onlineUsers.set(userId, new Set());
+        onlineUsers.get(userId).add(socket.id);
+
+        console.log(`[Socket] Broadcasting user_status {userId:${userId}, isOnline:true}`);
+        socket.broadcast.emit('user_status', { userId, isOnline: true });
+    });
+
+    // Returns current online state for a single user (with ack callback).
+    socket.on('check_status', (userId, callback) => {
+        const isOnline = onlineUsers.has(userId) && onlineUsers.get(userId).size > 0;
+        console.log(`[Socket] check_status: userId=${userId}, isOnline=${isOnline}`);
+        callback(isOnline);
+    });
+
+    // Bulk status check — used when loading the conversation list.
+    socket.on('get_statuses', (userIds, callback) => {
+        const statuses = {};
+        userIds.forEach(id => {
+            statuses[id] = onlineUsers.has(id) && onlineUsers.get(id).size > 0;
+        });
+        callback(statuses);
+    });
+
+    // Explicit offline — emitted by the frontend on logout so the
+    // server doesn't have to wait for the TCP disconnect.
+    socket.on('user_offline', (userId) => {
+        console.log(`[Socket] user_offline received: userId=${userId}`);
+        const sockets = onlineUsers.get(userId);
+        if (sockets) {
+            sockets.delete(socket.id);
+            if (sockets.size === 0) {
+                onlineUsers.delete(userId);
+                console.log(`[Socket] Broadcasting user_status {userId:${userId}, isOnline:false} (logout)`);
+                socket.broadcast.emit('user_status', { userId, isOnline: false });
+            }
+        }
+        connectedUserId = null;
     });
 
     socket.on('sendMessage', (data) => {
@@ -126,8 +179,18 @@ io.on('connection', (socket) => {
         io.to(`user_${data.expeditor_id}`).emit('newMessage', data);
     });
 
+    // Fallback: tab closed / network drop — clean up just like user_offline.
     socket.on('disconnect', () => {
-        console.log('User deconectat:', socket.id);
+        console.log('[Socket] User disconnected:', socket.id);
+        if (connectedUserId === null) return;
+        const sockets = onlineUsers.get(connectedUserId);
+        if (!sockets) return;
+        sockets.delete(socket.id);
+        if (sockets.size === 0) {
+            onlineUsers.delete(connectedUserId);
+            console.log(`[Socket] Broadcasting user_status {userId:${connectedUserId}, isOnline:false} (disconnect)`);
+            socket.broadcast.emit('user_status', { userId: connectedUserId, isOnline: false });
+        }
     });
 });
 

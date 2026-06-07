@@ -1,0 +1,548 @@
+/* ═══════════════════════════════════════════════
+   AutoTrade — Responsive Stylesheet
+   Mobile  : ≤ 768px
+   Tablet  : 769px – 1024px
+═══════════════════════════════════════════════ */
+
+/* Hamburger button — hidden on desktop */
+.nav-hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(49, 75, 110, 0.3);
+    border: 1px solid rgba(129, 151, 172, 0.2);
+    color: var(--text-primary);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+/* ─── Orbs (dark theme defaults, overridden for light below) ─── */
+.rsp-orb1 {
+    width: 640px; height: 640px;
+    background: radial-gradient(circle, rgba(49, 75, 110, 0.32) 0%, transparent 68%);
+    top: -180px; left: -180px;
+}
+.rsp-orb2 {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, rgba(30, 65, 110, 0.25) 0%, transparent 68%);
+    bottom: -120px; right: -120px;
+}
+.rsp-orb3 {
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(129, 151, 172, 0.07) 0%, transparent 70%);
+    top: 45%; right: 25%;
+}
+
+/* ═══════════════════════════════════════════════
+   LIGHT THEME — glass surface overrides
+   All dark rgba() values in inline styles are
+   overridden here via class selectors.
+═══════════════════════════════════════════════ */
+
+/* Body / orbs */
+[data-theme="light"] .rsp-orb1 {
+    background: radial-gradient(circle, rgba(80, 130, 200, 0.28) 0%, transparent 68%) !important;
+}
+[data-theme="light"] .rsp-orb2 {
+    background: radial-gradient(circle, rgba(60, 120, 190, 0.2) 0%, transparent 68%) !important;
+}
+[data-theme="light"] .rsp-orb3 {
+    background: radial-gradient(circle, rgba(80, 140, 200, 0.1) 0%, transparent 70%) !important;
+}
+
+/* Navbar */
+[data-theme="light"] .glass-navbar {
+    background: rgba(232, 241, 255, 0.9) !important;
+    border-bottom-color: rgba(49, 75, 110, 0.15) !important;
+    box-shadow: 0 4px 24px rgba(49, 75, 110, 0.1) !important;
+}
+[data-theme="light"] .nav-mobile-drawer {
+    background: rgba(232, 241, 255, 0.97) !important;
+    border-bottom-color: rgba(49, 75, 110, 0.15) !important;
+}
+
+/* Hero & stats bar */
+[data-theme="light"] .rsp-hero {
+    background: rgba(225, 238, 255, 0.65) !important;
+    border-color: rgba(49, 75, 110, 0.12) !important;
+}
+[data-theme="light"] .rsp-stats-bar {
+    background: rgba(225, 238, 255, 0.65) !important;
+    border-color: rgba(49, 75, 110, 0.1) !important;
+}
+[data-theme="light"] .rsp-stat-item {
+    border-color: rgba(49, 75, 110, 0.1) !important;
+}
+
+/* Listings sidebar & search bar */
+[data-theme="light"] .rsp-listings-sidebar {
+    background: rgba(225, 238, 255, 0.75) !important;
+    border-color: rgba(49, 75, 110, 0.1) !important;
+}
+[data-theme="light"] .rsp-search-bar {
+    background: rgba(220, 234, 252, 0.85) !important;
+    border-bottom-color: rgba(49, 75, 110, 0.12) !important;
+}
+
+/* Auth pages */
+[data-theme="light"] .rsp-auth-card {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: rgba(49, 75, 110, 0.18) !important;
+    box-shadow: 0 16px 48px rgba(49, 75, 110, 0.12), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+/* Chat */
+[data-theme="light"] .rsp-chat-sidebar {
+    background: rgba(220, 234, 252, 0.8) !important;
+    border-color: rgba(49, 75, 110, 0.1) !important;
+}
+[data-theme="light"] .rsp-chat-area {
+    background: rgba(235, 244, 255, 0.3) !important;
+}
+
+/* Generic glass panel (applied to inner cards/sections in each page) */
+[data-theme="light"] .gl-panel {
+    background: rgba(255, 255, 255, 0.62) !important;
+    border-color: rgba(49, 75, 110, 0.14) !important;
+    box-shadow: 0 4px 20px rgba(49, 75, 110, 0.09) !important;
+}
+
+/* Clickable cards */
+[data-theme="light"] .card-hover {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(49, 75, 110, 0.14) !important;
+    box-shadow: 0 4px 20px rgba(49, 75, 110, 0.09) !important;
+}
+[data-theme="light"] .card-hover:hover {
+    box-shadow: 0 18px 50px rgba(49, 75, 110, 0.18) !important;
+    border-color: rgba(49, 75, 110, 0.28) !important;
+}
+
+/* Row items (chat list, profile listings) */
+[data-theme="light"] .row-hover:hover {
+    background: rgba(210, 228, 252, 0.7) !important;
+    border-color: rgba(49, 75, 110, 0.22) !important;
+}
+
+/* Nav pill hover */
+[data-theme="light"] .pill-hover:hover {
+    background: rgba(49, 75, 110, 0.14) !important;
+    border-color: rgba(49, 75, 110, 0.28) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Tag hover */
+[data-theme="light"] .tag-hover:hover {
+    background: rgba(49, 75, 110, 0.12) !important;
+    border-color: rgba(49, 75, 110, 0.28) !important;
+}
+
+/* Ghost button hover on light */
+[data-theme="light"] .btn-ghost-hover:not(:disabled):hover {
+    background: rgba(49, 75, 110, 0.1) !important;
+    border-color: rgba(49, 75, 110, 0.3) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Chatbot FAB & window */
+[data-theme="light"] .rsp-chatbot-fab {
+    background: rgba(49, 75, 110, 0.5) !important;
+    box-shadow: 0 8px 32px rgba(49, 75, 110, 0.3) !important;
+}
+[data-theme="light"] .rsp-chatbot-window {
+    background: rgba(230, 240, 255, 0.92) !important;
+    border-color: rgba(49, 75, 110, 0.18) !important;
+}
+[data-theme="light"] .rsp-chatbot-header {
+    background: rgba(215, 230, 252, 0.7) !important;
+    border-bottom-color: rgba(49, 75, 110, 0.12) !important;
+}
+[data-theme="light"] .rsp-chatbot-input-area {
+    background: rgba(215, 230, 252, 0.7) !important;
+    border-top-color: rgba(49, 75, 110, 0.12) !important;
+}
+
+/* Inputs / selects / textareas */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: rgba(49, 75, 110, 0.2) !important;
+    color: var(--text-primary) !important;
+}
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 1;
+}
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+    border-color: rgba(49, 75, 110, 0.45) !important;
+    box-shadow: 0 0 0 3px rgba(49, 75, 110, 0.12) !important;
+}
+
+/* Footer */
+[data-theme="light"] .rsp-footer {
+    background: rgba(220, 234, 252, 0.85) !important;
+    border-top-color: rgba(49, 75, 110, 0.12) !important;
+}
+
+/* ───────────────────────────────────────────────
+   COMPREHENSIVE LIGHT THEME FIXES
+   Targets all hardcoded dark surfaces that inline
+   styles can't fix without component edits.
+─────────────────────────────────────────────── */
+
+/* 1. Avatar circles — always white text (gradient bg is always dark) */
+.gl-avatar { color: #ffffff !important; }
+
+/* 2. Gradient CTA buttons — always white text in light mode */
+[data-theme="light"] .btn-primary-glow { color: #ffffff !important; }
+
+/* 3. Navbar pills — replace dark pill bg with light glass */
+[data-theme="light"] .glass-navbar .pill-hover {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-color: rgba(49, 75, 110, 0.18) !important;
+    color: var(--text-secondary) !important;
+}
+[data-theme="light"] .glass-navbar .pill-hover:hover {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(49, 75, 110, 0.32) !important;
+    color: var(--text-primary) !important;
+}
+/* Active pill in navbar */
+[data-theme="light"] .glass-navbar .pill-hover[style*="rgba(49, 75, 110, 0.55)"] {
+    background: rgba(49, 75, 110, 0.18) !important;
+    color: var(--accent-light) !important;
+}
+
+/* 4. Mobile drawer pills — they're transparent so text just needs to be right */
+[data-theme="light"] .nav-mobile-drawer .pill-hover:hover {
+    background: rgba(49, 75, 110, 0.1) !important;
+}
+
+/* 5. Admin table headers */
+[data-theme="light"] .gl-panel th {
+    background: rgba(215, 230, 252, 0.8) !important;
+    color: var(--text-muted) !important;
+    border-bottom-color: rgba(49, 75, 110, 0.12) !important;
+}
+[data-theme="light"] .gl-panel tr {
+    border-bottom-color: rgba(49, 75, 110, 0.07) !important;
+}
+
+/* 6. Quick tags / filter pills — base state on light */
+[data-theme="light"] .tag-hover {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border-color: rgba(49, 75, 110, 0.18) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* 7. Row-hover items — base state on light (profile listingItem, etc.) */
+[data-theme="light"] .row-hover {
+    background: rgba(240, 248, 255, 0.5) !important;
+    border-color: rgba(49, 75, 110, 0.1) !important;
+}
+
+/* 8. Chat message bubbles */
+[data-theme="light"] .chat-bubble-user {
+    background: rgba(49, 75, 110, 0.18) !important;
+    border-color: rgba(49, 75, 110, 0.28) !important;
+}
+[data-theme="light"] .chat-bubble-bot {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border-color: rgba(49, 75, 110, 0.15) !important;
+}
+
+/* 9. AiChatbot window bubbles */
+[data-theme="light"] .rsp-chatbot-window .chat-bubble-user {
+    background: rgba(49, 75, 110, 0.18) !important;
+}
+[data-theme="light"] .rsp-chatbot-window .chat-bubble-bot {
+    background: rgba(255, 255, 255, 0.78) !important;
+}
+
+/* 10. Generic light glass surface (icon wrappers, image placeholders, tags) */
+[data-theme="light"] .gl-surface {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border-color: rgba(49, 75, 110, 0.14) !important;
+}
+
+/* 11. Small icon boxes (AI icon, etc.) */
+[data-theme="light"] .gl-icon {
+    background: rgba(49, 75, 110, 0.12) !important;
+    border-color: rgba(49, 75, 110, 0.22) !important;
+}
+
+/* 12. Feature chip tags (AI feature pills) */
+[data-theme="light"] .gl-chip {
+    background: rgba(49, 75, 110, 0.1) !important;
+    border-color: rgba(49, 75, 110, 0.22) !important;
+    color: var(--accent-light) !important;
+}
+
+/* 13. Hero search box */
+[data-theme="light"] .rsp-search-box {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border-color: rgba(49, 75, 110, 0.22) !important;
+    box-shadow: 0 4px 24px rgba(49, 75, 110, 0.1) !important;
+}
+
+/* 14. Body type card selected state */
+[data-theme="light"] .rsp-body-type-grid .card-hover {
+    background: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* 15. Conversation items in chat sidebar — active state */
+[data-theme="light"] .rsp-chat-sidebar .row-hover {
+    background: rgba(240, 248, 255, 0.6) !important;
+}
+
+/* 16. Listing card image placeholder area */
+[data-theme="light"] .rsp-listing-card-img {
+    background: rgba(220, 234, 252, 0.6) !important;
+}
+
+/* 17. News / AnuntDetail card image areas */
+[data-theme="light"] .gl-panel .gl-surface {
+    background: rgba(220, 234, 252, 0.6) !important;
+}
+
+/* Mobile drawer — hidden until .open */
+.nav-mobile-drawer {
+    display: none;
+    position: fixed;
+    top: 52px;
+    left: 0;
+    right: 0;
+    background: rgba(6, 14, 24, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(129, 151, 172, 0.12);
+    padding: 12px 16px 20px;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 99;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+.nav-mobile-drawer.open { display: flex; }
+
+.nav-mobile-drawer a,
+.nav-mobile-drawer button {
+    font-size: 14px !important;
+    padding: 11px 16px !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+    text-align: left !important;
+    display: block !important;
+    box-sizing: border-box;
+}
+
+.nav-mobile-divider {
+    height: 1px;
+    background: rgba(129, 151, 172, 0.1);
+    margin: 6px 0;
+}
+
+/* Mobile-only filter toggle button — hidden on desktop */
+.rsp-filter-toggle { display: none; }
+
+/* ══════════════════════════════════════
+   TABLET  769px – 1024px
+══════════════════════════════════════ */
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Home */
+    .rsp-hero        { padding: 32px 20px 28px !important; gap: 20px !important; }
+    .rsp-content     { padding: 16px 20px !important; }
+    .rsp-brands-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .rsp-news-grid   { grid-template-columns: repeat(2, 1fr) !important; }
+    .rsp-ai-section  { gap: 14px !important; }
+
+    /* Listings */
+    .rsp-listings-sidebar { width: 160px !important; min-width: 160px !important; }
+
+    /* AnuntDetail */
+    .rsp-specs-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+    .rsp-detail-left { width: 220px !important; min-width: 220px !important; }
+
+    /* Forms */
+    .rsp-grid3          { grid-template-columns: repeat(2, 1fr) !important; }
+    .rsp-form-container { padding: 0 4px !important; }
+
+    /* Profile */
+    .rsp-profile-page { padding: 16px !important; }
+
+    /* Admin */
+    .rsp-admin-page   { padding: 16px !important; }
+    .rsp-stats-row    { gap: 8px !important; }
+
+    /* News */
+    .rsp-news-page-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* Chat */
+    .rsp-chat-sidebar { width: 220px !important; min-width: 220px !important; }
+}
+
+/* ══════════════════════════════════════
+   MOBILE  ≤ 768px
+══════════════════════════════════════ */
+@media (max-width: 768px) {
+
+    /* ── Navbar ── */
+    .rsp-nav-center  { display: none !important; }
+    .rsp-nav-actions { display: none !important; }
+    .nav-hamburger   { display: flex !important; }
+
+    /* ── Home: Hero ── */
+    .rsp-hero {
+        flex-direction: column !important;
+        padding: 24px 16px 20px !important;
+        gap: 0 !important;
+        align-items: flex-start !important;
+    }
+    .rsp-hero-right  { display: none !important; }
+    .rsp-hero-title  { font-size: 24px !important; }
+    .rsp-search-box  { max-width: 100% !important; }
+
+    /* ── Home: Stats bar ── */
+    .rsp-stats-bar { flex-wrap: wrap !important; }
+    .rsp-stat-item {
+        width: 50% !important;
+        flex: unset !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(129, 151, 172, 0.08) !important;
+        padding: 12px 8px !important;
+    }
+    .rsp-stat-item:nth-child(odd) {
+        border-right: 1px solid rgba(129, 151, 172, 0.08) !important;
+    }
+
+    /* ── Home: Content sections ── */
+    .rsp-content     { padding: 12px !important; gap: 18px !important; }
+    .rsp-brands-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+    .rsp-news-grid   { grid-template-columns: 1fr !important; }
+    .rsp-ai-section  {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 16px !important;
+        gap: 14px !important;
+    }
+    .rsp-ai-section > button { width: 100% !important; }
+
+    /* ── Listings: filter toggle ── */
+    .rsp-filter-toggle {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        background: rgba(49, 75, 110, 0.3);
+        border: 1px solid rgba(129, 151, 172, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-family: inherit;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    /* ── Listings: layout ── */
+    .rsp-listings-body { flex-direction: column !important; }
+    .rsp-listings-sidebar {
+        width: 100% !important;
+        min-width: unset !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(129, 151, 172, 0.08) !important;
+        position: static !important;
+        max-height: unset !important;
+        overflow-y: visible !important;
+        padding: 12px !important;
+    }
+    .rsp-listings-sidebar.collapsed { display: none !important; }
+
+    .rsp-results-bar { flex-wrap: wrap !important; gap: 8px !important; }
+
+    /* ── Listings: cards stay horizontal, image narrows ── */
+    .rsp-listing-card-img {
+        width: 90px !important;
+        min-width: 90px !important;
+    }
+
+    /* ── AnuntDetail ── */
+    .rsp-detail-page   { padding: 12px !important; }
+    .rsp-detail-layout { flex-direction: column !important; gap: 16px !important; }
+    .rsp-detail-left   { width: 100% !important; min-width: unset !important; }
+    .rsp-specs-grid    { grid-template-columns: repeat(2, 1fr) !important; }
+
+    /* ── Forms (PostAnunt / EditAnunt) ── */
+    .rsp-form-page      { padding: 12px !important; }
+    .rsp-form-container { padding: 0 !important; }
+    .rsp-grid2          { grid-template-columns: 1fr !important; }
+    .rsp-grid3          { grid-template-columns: 1fr !important; }
+    .rsp-body-type-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .rsp-ai-input-row   { flex-direction: column !important; }
+    .rsp-ai-input-row > * { width: 100% !important; box-sizing: border-box; }
+
+    /* ── Profile ── */
+    .rsp-profile-page   { padding: 12px !important; }
+    .rsp-profile-header { flex-wrap: wrap !important; }
+    .rsp-tabs {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .rsp-tabs::-webkit-scrollbar { display: none; }
+
+    /* ── Login / Register ── */
+    .rsp-auth-page { padding: 12px !important; align-items: flex-start !important; padding-top: 24px !important; }
+    .rsp-auth-card { padding: 24px 18px !important; border-radius: 14px !important; }
+
+    /* ── EditAnunt ── */
+    /* shares rsp-form-page, rsp-form-container, rsp-grid2, rsp-grid3, rsp-body-type-grid with PostAnunt */
+
+    /* ── Admin ── */
+    .rsp-admin-page      { padding: 12px !important; }
+    .rsp-admin-header    { flex-direction: column !important; align-items: flex-start !important; gap: 14px !important; }
+    .rsp-stats-row       { width: 100% !important; display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
+    .rsp-admin-tabs      { overflow-x: auto !important; white-space: nowrap !important; scrollbar-width: none; }
+    .rsp-admin-tabs::-webkit-scrollbar { display: none; }
+    .rsp-news-form-grid  { grid-template-columns: 1fr !important; }
+
+    /* ── News list ── */
+    .rsp-news-page       { padding: 16px 12px !important; }
+    .rsp-news-page-grid  { grid-template-columns: 1fr !important; }
+
+    /* ── NewsDetail ── */
+    .rsp-news-detail-page      { padding: 12px !important; }
+    .rsp-news-detail-container { max-width: 100% !important; }
+    .rsp-news-article-body     { padding: 18px 16px !important; }
+    .rsp-news-hero-img         { height: 200px !important; }
+    .rsp-news-title            { font-size: 20px !important; }
+
+    /* ── Chat ── */
+    .rsp-chat-page {
+        flex-direction: column !important;
+    }
+    .rsp-chat-sidebar {
+        width: 100% !important;
+        min-width: unset !important;
+        max-height: 200px !important;
+        overflow-y: auto !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(129, 151, 172, 0.08) !important;
+    }
+    .rsp-chat-area    { min-height: 0 !important; }
+    .rsp-chat-messages { padding: 12px !important; gap: 8px !important; }
+    .rsp-chat-input   { padding: 10px 12px !important; }
+    .rsp-message-bubble { max-width: 85% !important; }
+}
+
+/* Chat page uses position:fixed so no scroll-lock classes needed */

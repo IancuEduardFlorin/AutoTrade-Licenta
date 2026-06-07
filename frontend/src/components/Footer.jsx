@@ -2,15 +2,15 @@ import { Link } from 'react-router-dom';
 
 function Footer() {
     return (
-        <footer style={styles.footer}>
+        <footer style={styles.footer} className="rsp-footer">
             <div style={styles.footerLeft}>
                 <span style={styles.logo}>Auto<span style={styles.logoAccent}>Trade</span></span>
                 <span style={styles.copy}>© 2026 AutoTrade · All rights reserved</span>
             </div>
             <div style={styles.footerLinks}>
-                <Link to="/" style={styles.link}>Terms</Link>
-                <Link to="/" style={styles.link}>Privacy</Link>
-                <Link to="/" style={styles.link}>Contact</Link>
+                <Link to="/" style={styles.link} className="link-glow">Terms</Link>
+                <Link to="/" style={styles.link} className="link-glow">Privacy</Link>
+                <Link to="/" style={styles.link} className="link-glow">Contact</Link>
             </div>
         </footer>
     );
@@ -18,12 +18,15 @@ function Footer() {
 
 const styles = {
     footer: {
-        background: 'var(--bg-navbar)',
-        borderTop: '1px solid var(--border)',
+        background: 'var(--glass-deep)',
+        backdropFilter: 'var(--glass-blur-heavy)',
+        WebkitBackdropFilter: 'var(--glass-blur-heavy)',
+        borderTop: '1px solid var(--border-faint)',
         padding: '14px 24px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.2)',
     },
     footerLeft: {
         display: 'flex',

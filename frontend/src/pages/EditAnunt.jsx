@@ -21,10 +21,7 @@ function EditAnunt() {
         caroserie: '',
     });
 
-    if (!token) {
-        navigate('/login');
-        return null;
-    }
+    if (!token) { navigate('/login'); return null; }
 
     useEffect(() => {
         const fetchAnunt = async () => {
@@ -34,26 +31,14 @@ function EditAnunt() {
                     api.get(`/anunturi/${id}/imagini`),
                 ]);
                 const anunt = anuntRes.data;
-
-                if (anunt.user_id !== user?.id && user?.rol !== 'admin') {
-                    navigate('/listings');
-                    return;
-                }
-
+                if (anunt.user_id !== user?.id && user?.rol !== 'admin') { navigate('/listings'); return; }
                 setImaginiExistente(imaginiRes.data);
                 setFormData({
-                    titlu: anunt.titlu || '',
-                    descriere: anunt.descriere || '',
-                    pret: anunt.pret || '',
-                    marca: anunt.marca || '',
-                    model: anunt.model || '',
-                    an: anunt.an || '',
-                    kilometraj: anunt.kilometraj || '',
-                    motorizare: anunt.motorizare || '',
-                    transmisie: anunt.transmisie || '',
-                    putere: anunt.putere || '',
-                    tractiune: anunt.tractiune || '',
-                    capacitate_cilindrica: anunt.capacitate_cilindrica || '',
+                    titlu: anunt.titlu || '', descriere: anunt.descriere || '', pret: anunt.pret || '',
+                    marca: anunt.marca || '', model: anunt.model || '', an: anunt.an || '',
+                    kilometraj: anunt.kilometraj || '', motorizare: anunt.motorizare || '',
+                    transmisie: anunt.transmisie || '', putere: anunt.putere || '',
+                    tractiune: anunt.tractiune || '', capacitate_cilindrica: anunt.capacitate_cilindrica || '',
                     caroserie: anunt.caroserie || '',
                 });
             } catch (err) {
@@ -65,9 +50,8 @@ function EditAnunt() {
         };
         fetchAnunt();
     }, [id]);
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -75,23 +59,17 @@ function EditAnunt() {
         setSaving(true);
         try {
             await api.put(`/anunturi/${id}`, formData);
-
-            // Actualizeaza ordinea imaginilor existente
             if (imaginiExistente.length > 0) {
                 await Promise.all(imaginiExistente.map((img, i) =>
                     api.put(`/anunturi/imagini/${img.id}/ordine`, { ordine: i })
                 ));
             }
-
             if (imaginiNoi.length > 0) {
                 setUploadProgress(true);
-                const formDataImagini = new FormData();
-                imaginiNoi.forEach(img => formDataImagini.append('imagini', img));
-                await api.post(`/anunturi/${id}/imagini`, formDataImagini, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
+                const fd = new FormData();
+                imaginiNoi.forEach(img => fd.append('imagini', img));
+                await api.post(`/anunturi/${id}/imagini`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
             }
-
             navigate(`/listings/${id}`);
         } catch (err) {
             setError(err.response?.data?.mesaj || 'Something went wrong');
@@ -99,7 +77,9 @@ function EditAnunt() {
             setSaving(false);
             setUploadProgress(false);
         }
-    };    const handleStergeImagine = async (imagineId) => {
+    };
+
+    const handleStergeImagine = async (imagineId) => {
         if (!window.confirm('Delete this image?')) return;
         try {
             await api.delete(`/anunturi/imagini/${imagineId}`);
@@ -108,11 +88,12 @@ function EditAnunt() {
             setError('Could not delete image');
         }
     };
+
     if (loading) return <div style={styles.loading}>Loading...</div>;
 
     return (
-        <div style={styles.page}>
-            <div style={styles.container}>
+        <div style={styles.page} className="rsp-form-page">
+            <div style={styles.container} className="rsp-form-container">
                 <div style={styles.header}>
                     <h1 style={styles.title}>Edit listing</h1>
                     <p style={styles.subtitle}>Update the details of your listing</p>
@@ -121,11 +102,9 @@ function EditAnunt() {
                 {error && <div style={styles.errorBox}>{error}</div>}
 
                 <form onSubmit={handleSubmit}>
-
-                    {/* Informatii de baza */}
-                    <div style={styles.section}>
+                    <div style={styles.section} className="gl-panel">
                         <div style={styles.sectionTitle}>Basic information</div>
-                        <div style={styles.grid2}>
+                        <div style={styles.grid2} className="rsp-grid2">
                             <div style={styles.fieldGroup}>
                                 <label style={styles.label}>Listing title *</label>
                                 <input style={styles.input} name="titlu" value={formData.titlu} onChange={handleChange} required />
@@ -141,17 +120,14 @@ function EditAnunt() {
                         </div>
                     </div>
 
-                    {/* Detalii masina */}
-                    <div style={styles.section}>
+                    <div style={styles.section} className="gl-panel">
                         <div style={styles.sectionTitle}>Car details</div>
-                        <div style={styles.grid3}>
+                        <div style={styles.grid3} className="rsp-grid3">
                             <div style={styles.fieldGroup}>
                                 <label style={styles.label}>Brand *</label>
                                 <select style={styles.select} name="marca" value={formData.marca} onChange={handleChange} required>
                                     <option value="">Select brand</option>
-                                    {['Alfa Romeo','Audi','BMW','Chevrolet','Chrysler','Citroën','Dacia','Fiat','Ford','Honda','Hyundai','Jeep','Kia','Lexus','Mazda','Mercedes','Mitsubishi','Nissan','Opel','Peugeot','Porsche','Renault','Seat','Skoda','Subaru','Suzuki','Toyota','Volkswagen','Volvo'].map(m => (
-                                        <option key={m} value={m}>{m}</option>
-                                    ))}
+                                    {['Alfa Romeo','Audi','BMW','Chevrolet','Chrysler','Citroën','Dacia','Fiat','Ford','Honda','Hyundai','Jeep','Kia','Lexus','Mazda','Mercedes','Mitsubishi','Nissan','Opel','Peugeot','Porsche','Renault','Seat','Skoda','Subaru','Suzuki','Toyota','Volkswagen','Volvo'].map(m => <option key={m} value={m}>{m}</option>)}
                                     <option value="Other">Other</option>
                                 </select>
                             </div>
@@ -207,7 +183,7 @@ function EditAnunt() {
 
                         <div style={styles.fieldGroup}>
                             <label style={styles.label}>Body type</label>
-                            <div style={styles.bodyTypeGrid}>
+                            <div style={styles.bodyTypeGrid} className="rsp-body-type-grid">
                                 {[
                                     { value: 'Small car', label: 'Small car', emoji: '🚗' },
                                     { value: 'Off-road/SUV', label: 'SUV / Off-road', emoji: '🚙' },
@@ -218,47 +194,31 @@ function EditAnunt() {
                                     { value: 'Combination', label: 'Combination', emoji: '🚗' },
                                     { value: 'Other', label: 'Other', emoji: '🚗' },
                                 ].map(type => (
-                                    <div
-                                        key={type.value}
-                                        style={{
-                                            ...styles.bodyTypeCard,
-                                            borderColor: formData.caroserie === type.value ? 'var(--accent-light)' : 'var(--border)',
-                                            background: formData.caroserie === type.value ? 'var(--accent)' : 'var(--bg-card)',
-                                        }}
+                                    <div key={type.value}
+                                        style={{ ...styles.bodyTypeCard, borderColor: formData.caroserie === type.value ? 'var(--border-accent)' : 'var(--border)', background: formData.caroserie === type.value ? 'var(--accent-tint-strong)' : 'var(--bg-card)' }}
+                                        className="card-hover"
                                         onClick={() => setFormData({ ...formData, caroserie: type.value })}
                                     >
-                                        <span style={{fontSize: '20px'}}>{type.emoji}</span>
-                                        <span style={{fontSize: '10px', color: formData.caroserie === type.value ? 'var(--text-primary)' : 'var(--text-secondary)'}}>{type.label}</span>
+                                        <span style={{ fontSize: '20px' }}>{type.emoji}</span>
+                                        <span style={{ fontSize: '10px', color: formData.caroserie === type.value ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{type.label}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
-                    {/* Imagini existente */}
-                    <div style={styles.section}>
-                        <div style={styles.sectionTitle}>Photos</div>
 
+                    <div style={styles.section} className="gl-panel">
+                        <div style={styles.sectionTitle}>Photos</div>
                         {imaginiExistente.length > 0 && (
                             <div style={styles.existingImgs}>
-                                <div style={{...styles.label, marginBottom: '8px'}}>Current photos — drag to reorder</div>
+                                <div style={{ ...styles.label, marginBottom: '8px' }}>Current photos — drag to reorder</div>
                                 <div style={styles.previewGrid}>
                                     {imaginiExistente.map((img, i) => (
-                                        <div
-                                            key={img.id}
-                                            draggable
+                                        <div key={img.id} draggable
                                             onDragStart={(e) => e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'existing', index: i }))}
                                             onDragOver={(e) => e.preventDefault()}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                                                if (data.type === 'existing') {
-                                                    const newArr = [...imaginiExistente];
-                                                    const [moved] = newArr.splice(data.index, 1);
-                                                    newArr.splice(i, 0, moved);
-                                                    setImaginiExistente(newArr);
-                                                }
-                                            }}
-                                            style={{...styles.previewItem, cursor: 'grab'}}
+                                            onDrop={(e) => { e.preventDefault(); const data = JSON.parse(e.dataTransfer.getData('text/plain')); if (data.type === 'existing') { const arr = [...imaginiExistente]; const [m] = arr.splice(data.index, 1); arr.splice(i, 0, m); setImaginiExistente(arr); } }}
+                                            style={{ ...styles.previewItem, cursor: 'grab' }}
                                         >
                                             <img src={img.url} alt="car" style={styles.previewImg} />
                                             {i === 0 && <div style={styles.mainBadge}>Main</div>}
@@ -268,42 +228,23 @@ function EditAnunt() {
                                 </div>
                             </div>
                         )}
-
-                        <div style={{...styles.uploadArea, marginTop: imaginiExistente.length > 0 ? '16px' : '0'}}>
-                            <input
-                                type="file"
-                                id="imagini-noi"
-                                multiple
-                                accept="image/*"
-                                style={{display: 'none'}}
-                                onChange={(e) => setImaginiNoi(Array.from(e.target.files))}
-                            />
+                        <div style={{ ...styles.uploadArea, marginTop: imaginiExistente.length > 0 ? '16px' : '0' }}>
+                            <input type="file" id="imagini-noi" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => setImaginiNoi(Array.from(e.target.files))} />
                             <label htmlFor="imagini-noi" style={styles.uploadLabel}>
-                                <div style={{fontSize: '28px'}}>📷</div>
-                                <div style={{fontSize: '13px', color: 'var(--text-primary)'}}>Click to add more photos</div>
-                                <div style={{fontSize: '11px', color: 'var(--text-muted)'}}>Max 5 photos · JPG, PNG, WebP · Max 5MB each</div>
+                                <div style={{ fontSize: '28px' }}>📷</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Click to add more photos</div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Max 5 photos · JPG, PNG, WebP · Max 5MB each</div>
                             </label>
                             {imaginiNoi.length > 0 && (
-                                <div style={{marginTop: '16px'}}>
-                                    <div style={{...styles.label, marginBottom: '8px'}}>New photos — drag to reorder</div>
+                                <div style={{ marginTop: '16px' }}>
+                                    <div style={{ ...styles.label, marginBottom: '8px' }}>New photos — drag to reorder</div>
                                     <div style={styles.previewGrid}>
                                         {imaginiNoi.map((img, i) => (
-                                            <div
-                                                key={i}
-                                                draggable
+                                            <div key={i} draggable
                                                 onDragStart={(e) => e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'new', index: i }))}
                                                 onDragOver={(e) => e.preventDefault()}
-                                                onDrop={(e) => {
-                                                    e.preventDefault();
-                                                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                                                    if (data.type === 'new') {
-                                                        const newArr = [...imaginiNoi];
-                                                        const [moved] = newArr.splice(data.index, 1);
-                                                        newArr.splice(i, 0, moved);
-                                                        setImaginiNoi(newArr);
-                                                    }
-                                                }}
-                                                style={{...styles.previewItem, cursor: 'grab'}}
+                                                onDrop={(e) => { e.preventDefault(); const data = JSON.parse(e.dataTransfer.getData('text/plain')); if (data.type === 'new') { const arr = [...imaginiNoi]; const [m] = arr.splice(data.index, 1); arr.splice(i, 0, m); setImaginiNoi(arr); } }}
+                                                style={{ ...styles.previewItem, cursor: 'grab' }}
                                             >
                                                 <img src={URL.createObjectURL(img)} alt={`new ${i}`} style={styles.previewImg} />
                                                 {i === 0 && imaginiExistente.length === 0 && <div style={styles.mainBadge}>Main</div>}
@@ -315,9 +256,10 @@ function EditAnunt() {
                             )}
                         </div>
                     </div>
+
                     <div style={styles.formFooter}>
-                        <button type="button" style={styles.btnCancel} onClick={() => navigate(`/listings/${id}`)}>Cancel</button>
-                        <button type="submit" style={styles.btnSubmit} disabled={saving}>
+                        <button type="button" style={styles.btnCancel} className="btn-ghost-hover" onClick={() => navigate(`/listings/${id}`)}>Cancel</button>
+                        <button type="submit" style={styles.btnSubmit} className="btn-primary-glow" disabled={saving}>
                             {saving ? 'Saving...' : 'Save changes'}
                         </button>
                     </div>
@@ -327,36 +269,44 @@ function EditAnunt() {
     );
 }
 
+const gc = {
+    background: 'var(--bg-card)',
+    backdropFilter: 'var(--glass-blur)',
+    WebkitBackdropFilter: 'var(--glass-blur)',
+    border: '1px solid var(--border)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
+};
+
 const styles = {
-    mainBadge: { position: 'absolute', bottom: '4px', left: '4px', background: 'var(--accent)', color: 'var(--text-primary)', fontSize: '9px', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' },
-    page: { minHeight: '100vh', padding: '24px', background: 'var(--bg-primary)' },
+    mainBadge: { position: 'absolute', bottom: '4px', left: '4px', background: 'var(--accent)', color: '#fff', fontSize: '9px', padding: '2px 6px', borderRadius: '4px', fontWeight: '500' },
+    page: { minHeight: '100vh', padding: '24px' },
     loading: { textAlign: 'center', padding: '60px', color: 'var(--text-muted)' },
     container: { maxWidth: '800px', margin: '0 auto' },
     header: { marginBottom: '24px' },
     title: { fontSize: '22px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px' },
     subtitle: { fontSize: '13px', color: 'var(--text-muted)' },
-    errorBox: { background: '#2a1010', borderWidth: '1px', borderStyle: 'solid', borderColor: '#5a2020', color: '#f08080', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' },
-    section: { background: 'var(--bg-card)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '12px', padding: '20px', marginBottom: '16px' },
+    errorBox: { background: 'var(--color-error-bg)', backdropFilter: 'var(--glass-blur)', border: '1px solid var(--color-error-border)', color: 'var(--color-error)', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' },
+    section: { ...gc, borderRadius: '12px', padding: '20px', marginBottom: '16px' },
     sectionTitle: { fontSize: '13px', fontWeight: '500', color: 'var(--accent-light)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '16px' },
     grid2: { display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px', marginBottom: '12px' },
     grid3: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', marginBottom: '12px' },
     fieldGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
     label: { fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500' },
-    input: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit' },
-    select: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'inherit' },
-    textarea: { background: 'var(--bg-navbar)', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', borderRadius: '8px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' },
+    input: { background: 'var(--glass-input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit' },
+    select: { background: 'var(--glass-input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'inherit' },
+    textarea: { background: 'var(--glass-input)', border: '1px solid var(--border)', borderRadius: '8px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', outline: 'none', fontFamily: 'inherit', resize: 'vertical' },
     bodyTypeGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '8px', marginTop: '6px' },
-    bodyTypeCard: { borderWidth: '1px', borderStyle: 'solid', borderRadius: '8px', padding: '10px 6px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' },
+    bodyTypeCard: { backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)', border: '1px solid', borderRadius: '8px', padding: '10px 6px', textAlign: 'center', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' },
     formFooter: { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' },
-    btnCancel: { background: 'transparent', borderWidth: '1px', borderStyle: 'solid', borderColor: 'var(--border)', color: 'var(--text-muted)', borderRadius: '8px', padding: '10px 20px', fontSize: '13px' },
-    btnSubmit: { background: 'var(--accent)', color: 'var(--text-primary)', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: '500' },
+    btnCancel: { background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', borderRadius: '8px', padding: '10px 20px', fontSize: '13px' },
+    btnSubmit: { background: 'var(--btn-gradient)', color: 'var(--text-primary)', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '13px', fontWeight: '500', boxShadow: '0 2px 12px rgba(49,75,110,0.4)' },
     existingImgs: { marginBottom: '12px' },
-    uploadArea: { borderWidth: '2px', borderStyle: 'dashed', borderColor: 'var(--border-accent)', borderRadius: '10px', padding: '20px', textAlign: 'center' },
+    uploadArea: { border: '2px dashed var(--border-accent)', borderRadius: '10px', padding: '20px', textAlign: 'center' },
     uploadLabel: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' },
     previewGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px', marginTop: '10px' },
     previewItem: { position: 'relative' },
     previewImg: { width: '100%', height: '80px', objectFit: 'cover', borderRadius: '6px' },
-    removeImg: { position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    removeImg: { position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', color: '#fff', border: 'none', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 };
 
 export default EditAnunt;

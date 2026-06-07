@@ -16,7 +16,6 @@ function Login() {
         e.preventDefault();
         setError('');
         setLoading(true);
-
         try {
             const response = await api.post('/auth/login', formData);
             localStorage.setItem('token', response.data.token);
@@ -31,11 +30,12 @@ function Login() {
     };
 
     return (
-        <div style={styles.page}>
-            <div style={styles.card}>
-
+        <div style={styles.page} className="rsp-auth-page">
+            <div style={styles.card} className="rsp-auth-card">
                 <div style={styles.header}>
-                    <Link to="/" style={styles.logo}>Auto<span style={styles.logoAccent}>Trade</span></Link>
+                    <Link to="/" style={styles.logo}>
+                        Auto<span style={styles.logoAccent}>Trade</span>
+                    </Link>
                     <h2 style={styles.title}>Welcome back</h2>
                     <p style={styles.subtitle}>Sign in to your account</p>
                 </div>
@@ -69,16 +69,15 @@ function Login() {
                         />
                     </div>
 
-                    <button type="submit" style={styles.btnSubmit} disabled={loading}>
+                    <button type="submit" style={styles.btnSubmit} className="btn-primary-glow" disabled={loading}>
                         {loading ? 'Signing in...' : 'Sign in'}
                     </button>
                 </form>
 
                 <p style={styles.footer}>
                     Don't have an account?{' '}
-                    <Link to="/register" style={styles.footerLink}>Register</Link>
+                    <Link to="/register" style={styles.footerLink} className="link-glow">Register</Link>
                 </p>
-
             </div>
         </div>
     );
@@ -90,75 +89,48 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-primary)',
         padding: '20px',
     },
     card: {
         background: 'var(--bg-card)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: 'var(--border-accent)',
-        borderRadius: '14px',
-        padding: '32px',
+        backdropFilter: 'var(--glass-blur-heavy)',
+        WebkitBackdropFilter: 'var(--glass-blur-heavy)',
+        border: '1px solid var(--border)',
+        boxShadow: '0 16px 48px rgba(0, 0, 0, 0.4)',
+        borderRadius: '18px',
+        padding: '36px',
         width: '100%',
         maxWidth: '400px',
     },
-    header: {
-        textAlign: 'center',
-        marginBottom: '28px',
-    },
+    header: { textAlign: 'center', marginBottom: '28px' },
     logo: {
-        fontSize: '20px',
+        fontSize: '22px',
         fontWeight: '500',
         color: 'var(--text-primary)',
         textDecoration: 'none',
         display: 'block',
-        marginBottom: '16px',
+        marginBottom: '20px',
     },
-    logoAccent: {
-        color: 'var(--accent-light)',
-    },
-    title: {
-        fontSize: '20px',
-        fontWeight: '500',
-        color: 'var(--text-primary)',
-        marginBottom: '6px',
-    },
-    subtitle: {
-        fontSize: '13px',
-        color: 'var(--text-muted)',
-    },
+    logoAccent: { color: 'var(--accent-light)' },
+    title: { fontSize: '20px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' },
+    subtitle: { fontSize: '13px', color: 'var(--text-muted)' },
     errorBox: {
-        background: '#2a1010',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: '#5a2020',
-        color: '#f08080',
+        background: 'var(--color-error-bg)',
+        backdropFilter: 'var(--glass-blur)',
+        WebkitBackdropFilter: 'var(--glass-blur)',
+        border: '1px solid var(--color-error-border)',
+        color: 'var(--color-error)',
         borderRadius: '8px',
         padding: '10px 14px',
         fontSize: '13px',
         marginBottom: '16px',
     },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '16px',
-    },
-    fieldGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-    },
-    label: {
-        fontSize: '12px',
-        color: 'var(--text-secondary)',
-        fontWeight: '500',
-    },
+    form: { display: 'flex', flexDirection: 'column', gap: '16px' },
+    fieldGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
+    label: { fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500' },
     input: {
-        background: 'var(--bg-navbar)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: 'var(--border)',
+        background: 'var(--glass-input)',
+        border: '1px solid var(--border)',
         borderRadius: '8px',
         padding: '10px 14px',
         color: 'var(--text-primary)',
@@ -169,7 +141,7 @@ const styles = {
         boxSizing: 'border-box',
     },
     btnSubmit: {
-        background: 'var(--accent)',
+        background: 'var(--btn-gradient)',
         color: 'var(--text-primary)',
         border: 'none',
         borderRadius: '8px',
@@ -177,19 +149,10 @@ const styles = {
         fontSize: '14px',
         fontWeight: '500',
         marginTop: '8px',
-        opacity: 1,
+        boxShadow: '0 4px 16px rgba(49, 75, 110, 0.45)',
     },
-    footer: {
-        textAlign: 'center',
-        marginTop: '20px',
-        fontSize: '13px',
-        color: 'var(--text-muted)',
-    },
-    footerLink: {
-        color: 'var(--accent-light)',
-        textDecoration: 'none',
-        fontWeight: '500',
-    },
+    footer: { textAlign: 'center', marginTop: '22px', fontSize: '13px', color: 'var(--text-muted)' },
+    footerLink: { color: 'var(--accent-light)', textDecoration: 'none', fontWeight: '500' },
 };
 
 export default Login;

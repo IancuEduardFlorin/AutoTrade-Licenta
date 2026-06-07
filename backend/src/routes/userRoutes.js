@@ -17,7 +17,7 @@ router.get('/anunturi', verifyToken, getAnunturiProprii);
 router.get('/public/:id', async (req, res) => {
     try {
         const [users] = await db.query(
-            'SELECT id, nume FROM users WHERE id = ?',
+            'SELECT id, nume, last_seen FROM users WHERE id = ?',
             [req.params.id]
         );
         if (users.length === 0) {
@@ -28,4 +28,16 @@ router.get('/public/:id', async (req, res) => {
         res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
     }
 });
+
+// Updates last_seen to NOW() for the authenticated user.
+// Called every 30s from the frontend while the app is open.
+router.put('/ping', verifyToken, async (req, res) => {
+    try {
+        await db.query('UPDATE users SET last_seen = NOW() WHERE id = ?', [req.user.id]);
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
+    }
+});
+
 export default router;
