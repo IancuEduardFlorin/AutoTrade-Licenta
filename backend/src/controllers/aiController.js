@@ -129,6 +129,73 @@ Replace null values with extracted data where possible.`;
     }
 };
 
+export const analizeazaAnunt = async (req, res) => {
+    try {
+        const { marca, model, an, km, pret, motorizare, putere, transmisie } = req.body;
+
+        const prompt = `You are an expert car analyst for the Romanian auto market. Analyze this car listing:
+Brand: ${marca}
+Model: ${model}
+Year: ${an}
+Mileage: ${km} km
+Price: ${pret} €
+Engine: ${motorizare || 'not specified'}
+Power: ${putere ? putere + ' HP' : 'not specified'}
+Transmission: ${transmisie || 'not specified'}
+
+Respond ONLY with valid JSON, no markdown, no extra text:
+{"puncteFort":["strength 1","strength 2","strength 3"],"puncteSlabe":["weakness 1","weakness 2"],"intrebari":["question 1","question 2","question 3"],"evaluarePret":"2-3 sentences on whether the price is fair/high/low for the Romanian market"}`;
+
+        const text = await callGroq(prompt, 0.3);
+        const cleaned = text.replace(/```json|```/g, '').trim();
+
+        let parsed;
+        try { parsed = JSON.parse(cleaned); }
+        catch {
+            const m = cleaned.match(/\{[\s\S]*\}/);
+            parsed = m ? JSON.parse(m[0]) : null;
+        }
+        if (!parsed) throw new Error('Could not parse AI response');
+        res.json(parsed);
+    } catch (error) {
+        console.error('analizeazaAnunt error:', error.message);
+        res.status(500).json({ mesaj: 'AI service error', eroare: error.message });
+    }
+};
+
+export const estimeazaPret = async (req, res) => {
+    try {
+        const { marca, model, an, km, pret } = req.body;
+
+        const prompt = `You are an expert in the Romanian used car market. Estimate the fair market value for:
+Brand: ${marca}
+Model: ${model}
+Year: ${an}
+Mileage: ${km} km
+${pret ? `Listed price: ${pret} €` : ''}
+
+Respond ONLY with valid JSON, no markdown, no extra text:
+{"pretEstimat":15000,"intervalMin":13000,"intervalMax":17000,"evaluare":"fair","explicatie":"2-3 sentences on this car's value in the Romanian market","sfaturi":["tip 1","tip 2"]}
+
+evaluare must be one of: "fair", "overpriced", "underpriced", or "no price to compare".`;
+
+        const text = await callGroq(prompt, 0.3);
+        const cleaned = text.replace(/```json|```/g, '').trim();
+
+        let parsed;
+        try { parsed = JSON.parse(cleaned); }
+        catch {
+            const m = cleaned.match(/\{[\s\S]*\}/);
+            parsed = m ? JSON.parse(m[0]) : null;
+        }
+        if (!parsed) throw new Error('Could not parse AI response');
+        res.json(parsed);
+    } catch (error) {
+        console.error('estimeazaPret error:', error.message);
+        res.status(500).json({ mesaj: 'AI service error', eroare: error.message });
+    }
+};
+
 export const chatbot = async (req, res) => {
     try {
         const { mesaj } = req.body;

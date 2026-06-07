@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import { addToCompare, removeFromCompare, isInCompare } from '../services/compareService';
 
 function AnuntDetail() {
     const { id } = useParams();
@@ -17,9 +18,17 @@ function AnuntDetail() {
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
+    const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiOpen, setAiOpen] = useState(false);
+    const [inCompare, setInCompare] = useState(false);
 
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        if (anunt) setInCompare(isInCompare(anunt.id));
+    }, [anunt]);
 
     useEffect(() => {
         const fetchAnunt = async () => {
@@ -48,6 +57,38 @@ function AnuntDetail() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [lightbox, imagineActiva]);
+
+    const handleAiAnalysis = async () => {
+        if (!aiOpen) { setAiOpen(true); }
+        else { setAiOpen(false); return; }
+        if (aiAnalysis) return;
+        setAiLoading(true);
+        try {
+            const res = await api.post('/ai/analizeaza-anunt', {
+                marca: anunt.marca, model: anunt.model, an: anunt.an,
+                km: anunt.kilometraj, pret: anunt.pret,
+                motorizare: anunt.motorizare, putere: anunt.putere, transmisie: anunt.transmisie,
+            });
+            setAiAnalysis(res.data);
+        } catch (err) { console.error(err); }
+        finally { setAiLoading(false); }
+    };
+
+    const handleCompare = () => {
+        if (inCompare) {
+            removeFromCompare(anunt.id);
+            setInCompare(false);
+        } else {
+            const ok = addToCompare({
+                id: anunt.id, titlu: anunt.titlu, marca: anunt.marca, model: anunt.model,
+                an: anunt.an, pret: anunt.pret, kilometraj: anunt.kilometraj,
+                motorizare: anunt.motorizare, putere: anunt.putere, transmisie: anunt.transmisie,
+                caroserie: anunt.caroserie, tractiune: anunt.tractiune,
+            });
+            if (ok) setInCompare(true);
+            else setMesaj('Compare list is full (max 3 cars)');
+        }
+    };
 
     const handleFavorit = async () => {
         if (!token) { navigate('/login'); return; }
@@ -181,6 +222,20 @@ function AnuntDetail() {
                             {favorit ? '♥ Saved' : '♡ Save to favorites'}
                         </button>
 
+                        <button
+                            style={{ ...styles.btnFav, background: inCompare ? 'var(--accent-tint-strong)' : 'var(--bg-card)', borderColor: inCompare ? 'var(--border-accent)' : 'var(--border)' }}
+                            onClick={handleCompare}
+                            className="btn-ghost-hover"
+                        >
+                            {inCompare ? '⊖ Remove from compare' : '⊕ Add to compare'}
+                        </button>
+
+                        {inCompare && (
+                            <Link to="/compare" style={{ ...styles.btnContact, textAlign: 'center', display: 'block', marginTop: 0 }} className="btn-primary-glow">
+                                View comparison →
+                            </Link>
+                        )}
+
                         {(isOwner || isAdmin) && (
                             <div style={styles.ownerActions}>
                                 <Link to={`/listings/${id}/edit`} style={styles.btnEdit} className="btn-primary-glow">Edit listing</Link>
@@ -231,6 +286,44 @@ function AnuntDetail() {
                             <p style={styles.descText}>{anunt.descriere}</p>
                         </div>
                     )}
+
+                    <div style={styles.aiSection} className="gl-panel">
+                        <button
+                            style={styles.btnAi}
+                            onClick={handleAiAnalysis}
+                            disabled={aiLoading}
+                            className="btn-primary-glow"
+                        >
+                            {aiLoading ? '⏳ Analyzing...' : aiOpen ? '▲ Hide AI analysis' : '🤖 Analyze with AI'}
+                        </button>
+
+                        {aiOpen && (
+                            <div style={styles.aiResult}>
+                                {aiLoading ? (
+                                    <div style={styles.aiLoadingText}>AI is analyzing this car for you...</div>
+                                ) : aiAnalysis ? (
+                                    <>
+                                        <div style={styles.aiCategory}>
+                                            <div style={{ ...styles.aiCatTitle, color: 'var(--color-online)' }}>✅ Strengths</div>
+                                            {aiAnalysis.puncteFort?.map((p, i) => <div key={i} style={styles.aiItem}>• {p}</div>)}
+                                        </div>
+                                        <div style={styles.aiCategory}>
+                                            <div style={{ ...styles.aiCatTitle, color: '#e8a838' }}>⚠️ Concerns</div>
+                                            {aiAnalysis.puncteSlabe?.map((p, i) => <div key={i} style={styles.aiItem}>• {p}</div>)}
+                                        </div>
+                                        <div style={styles.aiCategory}>
+                                            <div style={{ ...styles.aiCatTitle, color: 'var(--accent-light)' }}>❓ Questions to ask the seller</div>
+                                            {aiAnalysis.intrebari?.map((p, i) => <div key={i} style={styles.aiItem}>• {p}</div>)}
+                                        </div>
+                                        <div style={styles.aiCategory}>
+                                            <div style={{ ...styles.aiCatTitle, color: 'var(--text-primary)' }}>💰 Price assessment</div>
+                                            <div style={styles.aiText}>{aiAnalysis.evaluarePret}</div>
+                                        </div>
+                                    </>
+                                ) : null}
+                            </div>
+                        )}
+                    </div>
 
                     <div style={styles.postedAt}>
                         Posted on {new Date(anunt.creat_la).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -333,6 +426,18 @@ const styles = {
     descTitle: { fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '10px' },
     descText: { fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7 },
     postedAt: { fontSize: '11px', color: 'var(--text-muted)' },
+    aiSection: { ...gc, borderRadius: '10px', padding: '16px', marginBottom: '16px' },
+    btnAi: {
+        width: '100%', background: 'var(--btn-gradient)', color: 'var(--text-primary)',
+        border: 'none', borderRadius: '8px', padding: '10px 16px',
+        fontSize: '13px', fontWeight: '500', boxShadow: '0 2px 12px rgba(49,75,110,0.4)',
+    },
+    aiResult: { marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '14px' },
+    aiLoadingText: { textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '12px 0' },
+    aiCategory: { display: 'flex', flexDirection: 'column', gap: '5px' },
+    aiCatTitle: { fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '3px' },
+    aiItem: { fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: '4px' },
+    aiText: { fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7 },
 };
 
 export default AnuntDetail;

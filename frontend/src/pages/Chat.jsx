@@ -15,6 +15,10 @@ function Chat() {
     const [loading, setLoading] = useState(true);
     const [altUserLastSeen, setAltUserLastSeen] = useState(null);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const [imgFile, setImgFile] = useState(null);
+    const [imgPreview, setImgPreview] = useState(null);
+    const [imgUploading, setImgUploading] = useState(false);
 
     if (!token) { navigate('/login'); return null; }
 
@@ -92,15 +96,44 @@ function Chat() {
 
         setLoading(false);
     };
+    const handleImageSelect = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+        setImgFile(file);
+        setImgPreview(URL.createObjectURL(file));
+        e.target.value = '';
+    };
+
+    const clearImage = () => {
+        if (imgPreview) URL.revokeObjectURL(imgPreview);
+        setImgFile(null);
+        setImgPreview(null);
+    };
+
     const handleTrimite = async (e) => {
         e.preventDefault();
-        if (!mesajNou.trim()) return;
+        if (!mesajNou.trim() && !imgFile) return;
         try {
-            const response = await api.post('/mesaje', { destinatar_id: parseInt(userId), continut: mesajNou });
+            let imagineUrl = null;
+            if (imgFile) {
+                setImgUploading(true);
+                const fd = new FormData();
+                fd.append('imagine', imgFile);
+                const uploadRes = await api.post('/mesaje/imagine', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                imagineUrl = uploadRes.data.url;
+                clearImage();
+                setImgUploading(false);
+            }
+            const response = await api.post('/mesaje', {
+                destinatar_id: parseInt(userId),
+                continut: mesajNou.trim(),
+                ...(imagineUrl && { imagine_url: imagineUrl }),
+            });
             const mesajTrimis = response.data;
             socket.emit('sendMessage', { ...mesajTrimis, expeditor_id: user.id, destinatar_id: parseInt(userId) });
             setMesajNou('');
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error(err); setImgUploading(false); }
     };
 
     const getStatusText = (lastSeen) => {
@@ -174,20 +207,41 @@ function Chat() {
                             ) : (
                                 mesaje.map((m, i) => {
                                     const isMe = m.expeditor_id === user.id;
+                                    const bubbleBg = isMe ? 'rgba(49, 75, 110, 0.55)' : 'var(--bg-card)';
+                                    const bubbleBorder = isMe ? 'var(--border-accent)' : 'var(--border)';
+                                    const bubbleRadius = isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px';
+                                    const time = new Date(m.creat_la).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
                                     return (
                                         <div key={i} style={{ ...styles.messageRow, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
                                             {!isMe && <div style={styles.msgAvatar} className="gl-avatar">{m.expeditor_nume?.charAt(0).toUpperCase()}</div>}
-                                            <div
-                                                className={`rsp-message-bubble ${isMe ? 'chat-bubble-user' : 'chat-bubble-bot'}`}
-                                                style={{
-                                                    ...styles.messageBubble,
-                                                    background: isMe ? 'var(--accent-tint-strong)' : 'var(--bg-card)',
-                                                    borderColor: isMe ? 'var(--border-accent)' : 'var(--border)',
-                                                    borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                                                }}>
-                                                <div style={styles.messageText}>{m.continut}</div>
-                                                <div style={styles.messageTime}>{new Date(m.creat_la).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
-                                            </div>
+
+                                            {m.imagine_url ? (
+                                                <div style={{ ...styles.imgBubble, borderRadius: bubbleRadius, alignSelf: 'flex-end' }}>
+                                                    <img
+                                                        src={m.imagine_url}
+                                                        alt="sent image"
+                                                        style={styles.msgImage}
+                                                        onClick={() => window.open(m.imagine_url, '_blank')}
+                                                    />
+                                                    {m.continut && (
+                                                        <div style={{ ...styles.messageText, padding: '6px 12px 2px', background: bubbleBg, borderColor: bubbleBorder }}>
+                                                            {m.continut}
+                                                        </div>
+                                                    )}
+                                                    <div style={{ ...styles.messageTime, padding: '2px 10px 6px', background: bubbleBg }}>
+                                                        {time}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className={`rsp-message-bubble ${isMe ? 'chat-bubble-user' : 'chat-bubble-bot'}`}
+                                                    style={{ ...styles.messageBubble, background: bubbleBg, borderColor: bubbleBorder, borderRadius: bubbleRadius }}
+                                                >
+                                                    <div style={styles.messageText}>{m.continut}</div>
+                                                    <div style={styles.messageTime}>{time}</div>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })
@@ -195,9 +249,36 @@ function Chat() {
                             <div ref={messagesEndRef} />
                         </div>
 
+                        {imgPreview && (
+                            <div style={styles.imgPreviewBar}>
+                                <div style={styles.imgPreviewWrap}>
+                                    <img src={imgPreview} alt="preview" style={styles.imgPreviewThumb} />
+                                    <button style={styles.imgPreviewRemove} onClick={clearImage} type="button">✕</button>
+                                </div>
+                                <span style={styles.imgPreviewLabel}>Image ready to send</span>
+                            </div>
+                        )}
+
                         <form onSubmit={handleTrimite} style={styles.inputArea} className="rsp-chat-input gl-panel chat-input-panel">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleImageSelect}
+                            />
+                            <button
+                                type="button"
+                                style={styles.btnImg}
+                                onClick={() => fileInputRef.current?.click()}
+                                title="Send image"
+                            >
+                                📷
+                            </button>
                             <input style={styles.msgInput} placeholder="Type a message..." value={mesajNou} onChange={(e) => setMesajNou(e.target.value)} autoFocus />
-                            <button type="submit" style={styles.btnTrimite} className="btn-primary-glow" disabled={!mesajNou.trim()}>Send →</button>
+                            <button type="submit" style={styles.btnTrimite} className="btn-primary-glow" disabled={(!mesajNou.trim() && !imgFile) || imgUploading}>
+                                {imgUploading ? '⏳' : 'Send →'}
+                            </button>
                         </form>
                     </>
                 )}
@@ -265,23 +346,43 @@ const styles = {
     chatHeaderInfo: {},
     chatHeaderNume: { fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' },
     chatHeaderStatus: { fontSize: '11px', color: 'var(--color-online)' },
-    messagesArea: { flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' },
-    loadingMsg: { textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' },
+    messagesArea: {
+        flex: 1,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        padding: '20px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        boxSizing: 'border-box',
+    },
     noMessages: { textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', marginTop: '40px' },
-    messageRow: { display: 'flex', alignItems: 'flex-end', gap: '8px' },
+    messageRow: {
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: '8px',
+    },
     msgAvatar: {
-        width: '28px', height: '28px',
+        width: '28px', height: '28px', flexShrink: 0,
         background: 'var(--accent-tint)',
         backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
-        borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', color: 'var(--text-primary)', flexShrink: 0,
+        borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '11px', color: 'var(--text-primary)',
     },
     messageBubble: {
-        maxWidth: '60%', padding: '10px 14px',
+        maxWidth: '55%',
+        padding: '10px 14px',
         backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
         border: '1px solid',
+        wordBreak: 'break-word', overflowWrap: 'break-word',
+        display: 'flex', flexDirection: 'column', gap: '3px',
     },
-    messageText: { fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.5 },
-    messageTime: { fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' },
+    imgBubble: {
+        maxWidth: '55%', overflow: 'hidden',
+        border: '1px solid var(--border)',
+        backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
+        display: 'flex', flexDirection: 'column',
+    },
     inputArea: {
         padding: '14px 20px',
         borderTop: '1px solid var(--border-faint)',
@@ -313,6 +414,27 @@ const styles = {
         padding: '10px 20px', fontSize: '13px', fontWeight: '500',
         boxShadow: '0 2px 10px rgba(49,75,110,0.4)',
     },
+    btnImg: {
+        background: 'var(--glass-input)', border: '1px solid var(--border)',
+        borderRadius: '8px', width: '38px', height: '38px', fontSize: '16px',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, transition: 'background 0.15s',
+    },
+    imgPreviewBar: {
+        padding: '8px 20px 0',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        background: 'var(--glass-deep)',
+        borderTop: '1px solid var(--border-faint)',
+        flexShrink: 0,
+    },
+    imgPreviewWrap: { position: 'relative', flexShrink: 0 },
+    imgPreviewThumb: { width: '52px', height: '52px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-accent)', display: 'block' },
+    imgPreviewRemove: { position: 'absolute', top: '-6px', right: '-6px', background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: '50%', width: '18px', height: '18px', fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', lineHeight: 1 },
+    imgPreviewLabel: { fontSize: '11px', color: 'var(--text-muted)' },
+    msgImage: { display: 'block', maxWidth: '240px', maxHeight: '300px', width: '100%', objectFit: 'cover', cursor: 'pointer' },
+    loadingMsg: { textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px 0' },
+    messageText: { fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.5 },
+    messageTime: { fontSize: '10px', color: 'var(--text-muted)', textAlign: 'right', alignSelf: 'flex-end', whiteSpace: 'nowrap' },
 };
 
 export default Chat;

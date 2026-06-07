@@ -18,6 +18,8 @@ import Chat from './pages/Chat';
 import AiChatbot from './components/AiChatbot';
 import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
+import PriceEstimator from './pages/PriceEstimator';
+import Compare from './pages/Compare';
 
 function App() {
     useEffect(() => {
@@ -63,6 +65,8 @@ function App() {
                         <Route path="/chat/:userId" element={<Chat />} />
                         <Route path="/news" element={<News />} />
                         <Route path="/news/:id" element={<NewsDetail />} />
+                        <Route path="/estimeaza-pret" element={<PriceEstimator />} />
+                        <Route path="/compare" element={<Compare />} />
                     </Routes>
                     <Footer />
                     <AiChatbot />

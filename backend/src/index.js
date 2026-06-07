@@ -27,6 +27,9 @@ const io = new Server(httpServer, {
     },
 });
 
+// Add imagine_url column to mesaje if it doesn't exist yet
+db.query('ALTER TABLE mesaje ADD COLUMN imagine_url VARCHAR(500) NULL').catch(() => {});
+
 // Mentine conexiunea MySQL activa
 setInterval(async () => {
     try {

@@ -46,6 +46,7 @@ function Navbar() {
                         <Link to="/listings/new" style={{ ...styles.pill, ...(active === 'post' ? styles.pillActive : {}) }} className="pill-hover" onClick={() => setActive('post')}>Post an ad</Link>
                     )}
                     <Link to="/news" style={{ ...styles.pill, ...(active === 'news' ? styles.pillActive : {}) }} className="pill-hover" onClick={() => setActive('news')}>News</Link>
+                    <Link to="/estimeaza-pret" style={{ ...styles.pill, ...(active === 'estimator' ? styles.pillActive : {}) }} className="pill-hover" onClick={() => setActive('estimator')}>Price AI</Link>
                 </div>
 
                 <div style={styles.navActions} className="rsp-nav-actions">
@@ -78,6 +79,7 @@ function Navbar() {
                 <Link to="/" style={styles.drawerLink} className="pill-hover" onClick={() => { setActive('home'); close(); }}>🏠 Home</Link>
                 <Link to="/listings" style={styles.drawerLink} className="pill-hover" onClick={() => { setActive('listings'); close(); }}>🚗 Listings</Link>
                 <Link to="/news" style={styles.drawerLink} className="pill-hover" onClick={() => { setActive('news'); close(); }}>📰 News</Link>
+                <Link to="/estimeaza-pret" style={styles.drawerLink} className="pill-hover" onClick={() => { setActive('estimator'); close(); }}>💰 Price AI</Link>
                 <div className="nav-mobile-divider" />
                 {token ? (
                     <>
