@@ -342,7 +342,7 @@ const styles = {
         color: 'var(--accent-light)',
         textShadow: '0 0 24px rgba(129, 151, 172, 0.4)',
     },
-    heroSub: { fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.7 },
+    heroSub: { fontSize: '15px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.7 },
     searchBox: {
         display: 'flex',
         background: 'var(--glass-deep)',
@@ -360,7 +360,7 @@ const styles = {
     btnSearch: {
         background: 'var(--btn-gradient)',
         color: 'var(--text-primary)', border: 'none',
-        padding: '0 22px', fontSize: '12px', fontWeight: '500',
+        padding: '0 22px', fontSize: '13px', fontWeight: '500',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
     },
     quickTags: { display: 'flex', gap: '6px', marginTop: '14px', flexWrap: 'wrap' },
@@ -386,8 +386,8 @@ const styles = {
         background: 'var(--glass-deep)',
     },
     featuredImg: { width: '100%', height: '100%', objectFit: 'cover' },
-    featuredName: { fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '2px' },
-    featuredType: { fontSize: '11px', color: 'var(--accent-light)', marginBottom: '12px' },
+    featuredName: { fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '2px' },
+    featuredType: { fontSize: '12px', color: 'var(--accent-light)', marginBottom: '12px' },
     featuredStats: { display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '5px', marginBottom: '14px' },
     statBox: {
         background: 'var(--glass-deep)',
@@ -398,11 +398,11 @@ const styles = {
     statVal: { fontSize: '11px', fontWeight: '500', color: 'var(--text-primary)' },
     statLabel: { fontSize: '9px', color: 'var(--text-muted)' },
     featuredFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    featuredPrice: { fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)' },
+    featuredPrice: { fontSize: '16px', fontWeight: '500', color: 'var(--text-primary)' },
     btnView: {
         background: 'var(--btn-gradient)',
         color: 'var(--text-primary)', border: 'none',
-        padding: '5px 14px', borderRadius: '8px', fontSize: '11px', fontWeight: '500',
+        padding: '5px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: '500',
         textDecoration: 'none', boxShadow: '0 2px 12px rgba(49,75,110,0.4)',
     },
     statsBar: {
@@ -416,17 +416,17 @@ const styles = {
         borderRight: '1px solid var(--border-faint)',
     },
     statNum: {
-        fontSize: '19px', fontWeight: '500', color: 'var(--accent-light)',
+        fontSize: '25px', fontWeight: '500', color: 'var(--accent-light)',
         textShadow: '0 0 16px rgba(129, 151, 172, 0.3)',
     },
-    statItemLabel: { fontSize: '10px', color: 'var(--text-muted)', marginTop: '3px' },
+    statItemLabel: { fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px' },
     content: {
         padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: '28px',
     },
     section: {},
     sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' },
-    sectionTitle: { fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)' },
-    sectionLink: { fontSize: '12px', color: 'var(--accent-light)', textDecoration: 'none', cursor: 'pointer' },
+    sectionTitle: { fontSize: '17px', fontWeight: '500', color: 'var(--text-primary)' },
+    sectionLink: { fontSize: '13px', color: 'var(--accent-light)', textDecoration: 'none', cursor: 'pointer' },
     brandsGrid: { display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '10px' },
     brandCard: {
         ...glassCard,
@@ -434,8 +434,8 @@ const styles = {
         textAlign: 'center', cursor: 'pointer',
     },
     brandEmoji: { fontSize: '24px', marginBottom: '8px' },
-    brandName: { fontSize: '11px', color: 'var(--text-secondary)' },
-    brandCount: { fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' },
+    brandName: { fontSize: '13px', color: 'var(--text-secondary)' },
+    brandCount: { fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' },
     aiSection: {
         ...glassCard,
         borderRadius: '14px', padding: '20px 22px',
@@ -453,8 +453,8 @@ const styles = {
     },
     aiBody: { flex: 1 },
     aiTag: { fontSize: '10px', color: 'var(--accent-light)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: '500', marginBottom: '4px' },
-    aiTitle: { fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px' },
-    aiDesc: { fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 },
+    aiTitle: { fontSize: '16px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px' },
+    aiDesc: { fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 },
     aiFeats: { display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' },
     aiFeat: {
         background: 'var(--accent-tint)',
@@ -465,7 +465,7 @@ const styles = {
     btnAi: {
         background: 'var(--btn-gradient)',
         color: 'var(--text-primary)', border: 'none',
-        padding: '9px 18px', borderRadius: '9px', fontSize: '12px', fontWeight: '500',
+        padding: '9px 18px', borderRadius: '9px', fontSize: '13px', fontWeight: '500',
         whiteSpace: 'nowrap', boxShadow: '0 4px 16px rgba(49,75,110,0.45)',
         cursor: 'pointer',
     },
@@ -481,9 +481,9 @@ const styles = {
         borderBottom: '1px solid var(--border-faint)',
     },
     newsBody: { padding: '12px' },
-    newsCat: { fontSize: '10px', color: 'var(--accent-light)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '5px' },
-    newsTitle: { fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.45, marginBottom: '5px' },
-    newsDate: { fontSize: '10px', color: 'var(--text-muted)' },
+    newsCat: { fontSize: '11px', color: 'var(--accent-light)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '5px' },
+    newsTitle: { fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.45, marginBottom: '5px' },
+    newsDate: { fontSize: '11px', color: 'var(--text-muted)' },
     recentList: { display: 'flex', flexDirection: 'column', gap: '10px' },
     miniCard: {
         ...glassCard,
@@ -499,14 +499,14 @@ const styles = {
         overflow: 'hidden',
     },
     miniInfo: { flex: 1 },
-    miniTitle: { fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)' },
-    miniSub: { fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' },
+    miniTitle: { fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)' },
+    miniSub: { fontSize: '12px', color: 'var(--text-muted)', marginTop: '3px' },
     miniRight: { textAlign: 'right' },
     miniPrice: {
-        fontSize: '14px', fontWeight: '500', color: 'var(--accent-light)',
+        fontSize: '16px', fontWeight: '500', color: 'var(--accent-light)',
         textShadow: '0 0 12px rgba(129, 151, 172, 0.25)',
     },
-    miniTime: { fontSize: '10px', color: 'var(--text-muted)', marginTop: '3px' },
+    miniTime: { fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' },
 };
 
 export default Home;

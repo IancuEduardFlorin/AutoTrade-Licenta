@@ -197,6 +197,9 @@ function Chat() {
                                 <div style={styles.chatHeaderNume}>{altUser?.nume || 'Loading...'}</div>
                                 {(() => { const s = getStatusText(altUserLastSeen); return <div style={{ ...styles.chatHeaderStatus, color: s.color }}>{s.text}</div>; })()}
                             </div>
+                            <Link to={`/listings?user_id=${userId}`} style={styles.btnViewListings} className="btn-ghost-hover">
+                                View listings
+                            </Link>
                         </div>
 
                         <div style={styles.messagesArea} className="rsp-chat-messages">
@@ -346,6 +349,18 @@ const styles = {
     chatHeaderInfo: {},
     chatHeaderNume: { fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' },
     chatHeaderStatus: { fontSize: '11px', color: 'var(--color-online)' },
+    btnViewListings: {
+        marginLeft: 'auto',
+        background: 'transparent',
+        border: '1px solid var(--border)',
+        borderRadius: '6px',
+        padding: '5px 12px',
+        fontSize: '12px',
+        color: 'var(--text-muted)',
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+    },
     messagesArea: {
         flex: 1,
         overflowY: 'auto',

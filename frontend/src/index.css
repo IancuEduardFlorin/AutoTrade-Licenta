@@ -274,3 +274,58 @@ input:focus, select:focus, textarea:focus {
     border-color: rgba(129, 151, 172, 0.28) !important;
     transform: translateX(3px);
 }
+
+/* ─── Global font size scale-up ───────────────────────────────────────────
+   Uses !important to override inline React styles (CSS !important beats
+   regular inline styles per the CSS cascade spec).
+   Body is already 15px. All increases are relative to prior base sizes.
+──────────────────────────────────────────────────────────────────────────── */
+
+/* Headings: +2px from typical inline values */
+h1 { font-size: 28px !important; }
+h2 { font-size: 17px !important; }
+h3 { font-size: 16px !important; }
+h4 { font-size: 15px !important; }
+
+/* Body / description text: +1–2px */
+p  { font-size: 15px !important; }
+
+/* Buttons: +1px */
+button { font-size: 13px !important; }
+
+/* Form inputs — match body at 15px */
+input, select, textarea { font-size: 15px !important; }
+
+/* Table text: +1px */
+th, td { font-size: 14px !important; }
+
+/* Labels and small metadata: +1px */
+label { font-size: 13px !important; }
+small { font-size: 13px !important; }
+
+/* Stat / big number utility class (+4px, apply where needed) */
+.stat-num { font-size: 29px !important; }
+
+/* ─── Custom scrollbars — glassmorphism theme ─── */
+
+.rsp-listings-sidebar::-webkit-scrollbar,
+.rsp-chat-sidebar::-webkit-scrollbar,
+.rsp-chat-messages::-webkit-scrollbar {
+    width: 4px;
+}
+.rsp-listings-sidebar::-webkit-scrollbar-track,
+.rsp-chat-sidebar::-webkit-scrollbar-track,
+.rsp-chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+.rsp-listings-sidebar::-webkit-scrollbar-thumb,
+.rsp-chat-sidebar::-webkit-scrollbar-thumb,
+.rsp-chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(129, 151, 172, 0.3);
+    border-radius: 4px;
+}
+.rsp-listings-sidebar::-webkit-scrollbar-thumb:hover,
+.rsp-chat-sidebar::-webkit-scrollbar-thumb:hover,
+.rsp-chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(129, 151, 172, 0.5);
+}

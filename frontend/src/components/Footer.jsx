@@ -8,9 +8,9 @@ function Footer() {
                 <span style={styles.copy}>© 2026 AutoTrade · All rights reserved</span>
             </div>
             <div style={styles.footerLinks}>
-                <Link to="/" style={styles.link} className="link-glow">Terms</Link>
-                <Link to="/" style={styles.link} className="link-glow">Privacy</Link>
-                <Link to="/" style={styles.link} className="link-glow">Contact</Link>
+                <Link to="/terms" style={styles.link} className="link-glow">Terms</Link>
+                <Link to="/privacy" style={styles.link} className="link-glow">Privacy</Link>
+                <Link to="/contact" style={styles.link} className="link-glow">Contact</Link>
             </div>
         </footer>
     );

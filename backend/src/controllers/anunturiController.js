@@ -63,16 +63,16 @@ export const createAnunt = async (req, res) => {
         const {
             titlu, descriere, pret, marca, model, an,
             kilometraj, motorizare, transmisie,
-            putere, tractiune, capacitate_cilindrica, caroserie
+            putere, tractiune, capacitate_cilindrica, caroserie, oras, judet
         } = req.body;
 
         const [result] = await db.query(
             `INSERT INTO anunturi
              (titlu, descriere, pret, marca, model, an, kilometraj, motorizare,
-              transmisie, putere, tractiune, capacitate_cilindrica, caroserie, user_id)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              transmisie, putere, tractiune, capacitate_cilindrica, caroserie, oras, judet, user_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [titlu, descriere, pret, marca, model, an, kilometraj, motorizare,
-                transmisie, putere, tractiune, capacitate_cilindrica, caroserie, req.user.id]
+                transmisie, putere, tractiune, capacitate_cilindrica, caroserie, oras || null, judet || null, req.user.id]
         );
 
         res.status(201).json({ mesaj: 'Anunt adaugat cu succes!', id: result.insertId });
@@ -100,17 +100,17 @@ export const updateAnunt = async (req, res) => {
         const {
             titlu, descriere, pret, marca, model, an,
             kilometraj, motorizare, transmisie,
-            putere, tractiune, capacitate_cilindrica, caroserie
+            putere, tractiune, capacitate_cilindrica, caroserie, oras, judet
         } = req.body;
 
         await db.query(
             `UPDATE anunturi SET
                                  titlu=?, descriere=?, pret=?, marca=?, model=?, an=?, kilometraj=?,
                                  motorizare=?, transmisie=?, putere=?, tractiune=?,
-                                 capacitate_cilindrica=?, caroserie=?
+                                 capacitate_cilindrica=?, caroserie=?, oras=?, judet=?
              WHERE id=?`,
             [titlu, descriere, pret, marca, model, an, kilometraj, motorizare,
-                transmisie, putere, tractiune, capacitate_cilindrica, caroserie, req.params.id]
+                transmisie, putere, tractiune, capacitate_cilindrica, caroserie, oras || null, judet || null, req.params.id]
         );
 
         res.json({ mesaj: 'Anunt actualizat cu succes!' });
@@ -145,7 +145,7 @@ export const deleteAnunt = async (req, res) => {
 // PUBLIC - Cautare simpla dupa cuvinte cheie
 export const cautareSimple = async (req, res) => {
     try {
-        const { q } = req.query;
+        const { q, judet } = req.query;
 
         if (!q) {
             return res.status(400).json({ mesaj: 'Introduceti un termen de cautare' });
@@ -153,17 +153,18 @@ export const cautareSimple = async (req, res) => {
 
         const termen = `%${q}%`;
 
-        const [anunturi] = await db.query(
-            `SELECT anunturi.*, users.nume as nume_utilizator
+        let queryStr = `SELECT anunturi.*, users.nume as nume_utilizator
              FROM anunturi
              JOIN users ON anunturi.user_id = users.id
-             WHERE anunturi.titlu LIKE ?
+             WHERE (anunturi.titlu LIKE ?
              OR anunturi.marca LIKE ?
              OR anunturi.model LIKE ?
-             OR anunturi.descriere LIKE ?
-             ORDER BY anunturi.creat_la DESC`,
-            [termen, termen, termen, termen]
-        );
+             OR anunturi.descriere LIKE ?)`;
+        const qParams = [termen, termen, termen, termen];
+        if (judet) { queryStr += ' AND anunturi.judet = ?'; qParams.push(judet); }
+        queryStr += ' ORDER BY anunturi.creat_la DESC';
+
+        const [anunturi] = await db.query(queryStr, qParams);
 
         res.json(anunturi);
     } catch (error) {
@@ -178,7 +179,7 @@ export const cautareAvansata = async (req, res) => {
             marca, model, an_min, an_max,
             pret_min, pret_max, motorizare,
             transmisie, caroserie, tractiune,
-            km_max, putere_min
+            km_max, putere_min, judet, oras, user_id
         } = req.query;
 
         // Construim query-ul dinamic in functie de filtrele trimise
@@ -237,6 +238,18 @@ export const cautareAvansata = async (req, res) => {
         if (putere_min) {
             query += ' AND anunturi.putere >= ?';
             params.push(putere_min);
+        }
+        if (judet) {
+            query += ' AND anunturi.judet = ?';
+            params.push(judet);
+        }
+        if (oras) {
+            query += ' AND anunturi.oras LIKE ?';
+            params.push(`%${oras}%`);
+        }
+        if (user_id) {
+            query += ' AND anunturi.user_id = ?';
+            params.push(user_id);
         }
 
         query += ' ORDER BY anunturi.creat_la DESC';

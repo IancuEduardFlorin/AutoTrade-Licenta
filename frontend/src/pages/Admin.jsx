@@ -221,6 +221,7 @@ function Admin() {
                                         <th style={styles.th}>ID</th>
                                         <th style={styles.th}>Title</th>
                                         <th style={styles.th}>Posted by</th>
+                                        <th style={styles.th}>Location</th>
                                         <th style={styles.th}>Price</th>
                                         <th style={styles.th}>Date</th>
                                         <th style={styles.th}>Actions</th>
@@ -240,6 +241,7 @@ function Admin() {
                                                 </div>
                                             </td>
                                             <td style={styles.td}>{a.nume_utilizator}</td>
+                                            <td style={styles.td}>{[a.oras, a.judet].filter(Boolean).join(', ') || '-'}</td>
                                             <td style={{ ...styles.td, color: 'var(--accent-light)', fontWeight: '500' }}>{Number(a.pret).toLocaleString()} €</td>
                                             <td style={styles.td}>{new Date(a.creat_la).toLocaleDateString()}</td>
                                             <td style={styles.td}>

@@ -3,6 +3,8 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getCompareList, addToCompare, removeFromCompare, isInCompare } from '../services/compareService';
 
+const JUDETE = ['Alba','Arad','Argeș','Bacău','Bihor','Bistrița-Năsăud','Botoșani','Brăila','Brașov','Buzău','Călărași','Cluj','Constanța','Covasna','Dâmbovița','Dolj','Galați','Giurgiu','Gorj','Harghita','Hunedoara','Ialomița','Iași','Ilfov','Maramureș','Mehedinți','Mureș','Neamț','Olt','Prahova','Sălaj','Satu Mare','Sibiu','Suceava','Teleorman','Timiș','Tulcea','Vâlcea','Vaslui','Vrancea','Municipiul București'];
+
 const formatNumber = (value) => {
     const cleaned = value.replace(/\D/g, '');
     return cleaned.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -27,6 +29,9 @@ function Listings() {
         km_max:    searchParams.get('km_max')    || '',
         putere_min: searchParams.get('putere_min') || '',
         motorizare: searchParams.get('motorizare') || '',
+        judet:      searchParams.get('judet')      || '',
+        oras:       searchParams.get('oras')       || '',
+        user_id:    searchParams.get('user_id')    || '',
     });
     const [sortare, setSortare] = useState('newest');
     const [yearError, setYearError] = useState('');
@@ -117,7 +122,7 @@ function Listings() {
 
     const handleAplicaFiltre = () => { if (yearError) return; setSearch(''); fetchAnunturi(); };
     const handleReset = () => {
-        setFiltre({ marca: '', pret_min: '', pret_max: '', an_min: '', an_max: '', transmisie: '', caroserie: '', km_max: '', putere_min: '', motorizare: '' });
+        setFiltre({ marca: '', pret_min: '', pret_max: '', an_min: '', an_max: '', transmisie: '', caroserie: '', km_max: '', putere_min: '', motorizare: '', judet: '', oras: '', user_id: '' });
         setSearch('');
         setYearError('');
         setTimeout(fetchAnunturi, 100);
@@ -147,6 +152,19 @@ function Listings() {
                         <button type="submit" style={styles.btnSearch} className="btn-primary-glow">Search</button>
                     </form>
                 </div>
+
+                {filtre.user_id && (
+                    <div style={styles.userFilterBanner}>
+                        <span>Showing listings by <strong style={{ color: 'var(--accent-light)' }}>{anunturiSortate[0]?.nume_utilizator || '...'}</strong></span>
+                        <button
+                            style={styles.bannerClear}
+                            className="btn-ghost-hover"
+                            onClick={() => { setFiltre(f => ({ ...f, user_id: '' })); setTimeout(fetchAnunturi, 0); }}
+                        >
+                            ✕ Clear filter
+                        </button>
+                    </div>
+                )}
 
                 <div style={styles.body} className="rsp-listings-body">
                     <div style={styles.sidebar} className={`rsp-listings-sidebar${filtersOpen ? '' : ' collapsed'}`}>
@@ -220,6 +238,19 @@ function Listings() {
                             <input style={{ ...styles.filterInput, width: '100%', boxSizing: 'border-box' }} name="putere_min" placeholder="e.g. 100" value={filtre.putere_min} onChange={handleFiltreChange} />
                         </div>
 
+                        <div style={styles.filterGroup}>
+                            <label style={styles.filterLabel}>County</label>
+                            <select style={styles.filterSelect} name="judet" value={filtre.judet} onChange={handleFiltreChange}>
+                                <option value="">All counties</option>
+                                {JUDETE.map(j => <option key={j} value={j}>{j}</option>)}
+                            </select>
+                        </div>
+
+                        <div style={styles.filterGroup}>
+                            <label style={styles.filterLabel}>City</label>
+                            <input style={{ ...styles.filterInput, width: '100%', boxSizing: 'border-box' }} name="oras" placeholder="e.g. Cluj-Napoca" value={filtre.oras} onChange={handleFiltreChange} />
+                        </div>
+
                         <button style={{ ...styles.btnApply, opacity: yearError ? 0.5 : 1 }} className="btn-primary-glow" onClick={handleAplicaFiltre} disabled={!!yearError}>Apply filters</button>
                         <button style={styles.btnReset} className="btn-ghost-hover" onClick={handleReset}>Reset</button>
                     </div>
@@ -267,6 +298,9 @@ function Listings() {
                                                 <div style={styles.cardPrice}>{Number(anunt.pret).toLocaleString()} €</div>
                                             </div>
                                             <div style={styles.cardSub}>{anunt.an} · {anunt.kilometraj?.toLocaleString()} km · {anunt.transmisie}</div>
+                                            {(anunt.oras || anunt.judet) && (
+                                                <div style={styles.cardLocation}>📍 {[anunt.oras, anunt.judet].filter(Boolean).join(', ')}</div>
+                                            )}
                                             <div style={styles.cardTags}>
                                                 {anunt.motorizare && <span style={styles.tag}>{anunt.motorizare}</span>}
                                                 {anunt.putere && <span style={styles.tag}>{anunt.putere} HP</span>}
@@ -429,6 +463,20 @@ const styles = {
         borderRadius: '4px', border: '1px solid var(--border)',
     },
     cardFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    cardLocation: { fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' },
+    userFilterBanner: {
+        background: 'var(--accent-tint)',
+        borderTop: '1px solid var(--border-accent)',
+        borderBottom: '1px solid var(--border-accent)',
+        padding: '9px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        fontSize: '13px', color: 'var(--text-secondary)',
+    },
+    bannerClear: {
+        background: 'transparent', border: '1px solid var(--border)',
+        borderRadius: '6px', padding: '3px 10px', fontSize: '11px',
+        color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'inherit',
+    },
     cardMeta: { fontSize: '11px', color: 'var(--text-muted)' },
     compareBtn: {
         background: 'transparent', border: '1px solid var(--border)',

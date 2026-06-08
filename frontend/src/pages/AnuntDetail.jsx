@@ -260,6 +260,9 @@ function AnuntDetail() {
                     <div style={styles.header}>
                         <h1 style={styles.title}>{anunt.titlu}</h1>
                         <div style={styles.subtitle}>{anunt.marca} {anunt.model} · {anunt.an}</div>
+                        {(anunt.oras || anunt.judet) && (
+                            <div style={styles.location}>📍 {[anunt.oras, anunt.judet].filter(Boolean).join(', ')}</div>
+                        )}
                     </div>
 
                     <div style={styles.specsGrid} className="rsp-specs-grid">
@@ -272,6 +275,8 @@ function AnuntDetail() {
                             { label: 'Traction', value: anunt.tractiune || '-' },
                             { label: 'Body type', value: anunt.caroserie || '-' },
                             { label: 'Displacement', value: anunt.capacitate_cilindrica || '-' },
+                            { label: 'County', value: anunt.judet || '-' },
+                            { label: 'City', value: anunt.oras || '-' },
                         ].map(spec => (
                             <div key={spec.label} style={styles.specItem} className="gl-panel">
                                 <div style={styles.specLabel}>{spec.label}</div>
@@ -418,6 +423,7 @@ const styles = {
     header: { marginBottom: '20px' },
     title: { fontSize: '22px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px' },
     subtitle: { fontSize: '14px', color: 'var(--text-muted)' },
+    location: { fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' },
     specsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '24px' },
     specItem: { ...gc, borderRadius: '8px', padding: '12px' },
     specLabel: { fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' },

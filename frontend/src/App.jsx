@@ -20,6 +20,9 @@ import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
 import PriceEstimator from './pages/PriceEstimator';
 import Compare from './pages/Compare';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Contact from './pages/Contact';
 
 function App() {
     useEffect(() => {
@@ -67,6 +70,9 @@ function App() {
                         <Route path="/news/:id" element={<NewsDetail />} />
                         <Route path="/estimeaza-pret" element={<PriceEstimator />} />
                         <Route path="/compare" element={<Compare />} />
+                        <Route path="/terms" element={<Terms />} />
+                        <Route path="/privacy" element={<Privacy />} />
+                        <Route path="/contact" element={<Contact />} />
                     </Routes>
                     <Footer />
                     <AiChatbot />

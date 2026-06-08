@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
+const JUDETE = ['Alba','Arad','Argeș','Bacău','Bihor','Bistrița-Năsăud','Botoșani','Brăila','Brașov','Buzău','Călărași','Cluj','Constanța','Covasna','Dâmbovița','Dolj','Galați','Giurgiu','Gorj','Harghita','Hunedoara','Ialomița','Iași','Ilfov','Maramureș','Mehedinți','Mureș','Neamț','Olt','Prahova','Sălaj','Satu Mare','Sibiu','Suceava','Teleorman','Timiș','Tulcea','Vâlcea','Vaslui','Vrancea','Municipiul București'];
+
 function PostAnunt() {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
@@ -18,7 +20,7 @@ function PostAnunt() {
         marca: '', model: '', an: '',
         kilometraj: '', motorizare: '', transmisie: '',
         putere: '', tractiune: '', capacitate_cilindrica: '',
-        caroserie: '',
+        caroserie: '', judet: '', oras: '',
     });
 
     if (!token) { navigate('/login'); return null; }
@@ -247,6 +249,23 @@ function PostAnunt() {
                                         <span style={{ fontSize: '10px', color: formData.caroserie === type.value ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{type.label}</span>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={styles.section} className="gl-panel">
+                        <div style={styles.sectionTitle}>Location</div>
+                        <div style={styles.grid2} className="rsp-grid2">
+                            <div style={styles.fieldGroup}>
+                                <label style={styles.label}>County (Județ)</label>
+                                <select style={styles.select} name="judet" value={formData.judet} onChange={handleChange}>
+                                    <option value="">Select county</option>
+                                    {JUDETE.map(j => <option key={j} value={j}>{j}</option>)}
+                                </select>
+                            </div>
+                            <div style={styles.fieldGroup}>
+                                <label style={styles.label}>City (Oraș)</label>
+                                <input style={styles.input} name="oras" placeholder="e.g. Cluj-Napoca" value={formData.oras} onChange={handleChange} />
                             </div>
                         </div>
                     </div>
