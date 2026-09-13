@@ -17,20 +17,25 @@ function Admin() {
     const [newsForm, setNewsForm] = useState({ titlu: '', continut: '', categorie: 'News', status: 'draft' });
     const [newsImagine, setNewsImagine] = useState(null);
     const [editingNews, setEditingNews] = useState(null);
+    const [raportari, setRaportari] = useState([]);
+    const [searchUseri, setSearchUseri] = useState('');
+    const [searchAnunturi, setSearchAnunturi] = useState('');
 
     if (!token || user?.rol !== 'admin') { navigate('/'); return null; }
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [utilizatoriRes, anunturiRes, newsRes] = await Promise.all([
+                const [utilizatoriRes, anunturiRes, newsRes, raportariRes] = await Promise.all([
                     api.get('/admin/utilizatori'),
                     api.get('/admin/anunturi'),
                     api.get('/news/admin/toate'),
+                    api.get('/admin/raportari'),
                 ]);
                 setUtilizatori(utilizatoriRes.data);
                 setAnunturi(anunturiRes.data);
                 setArticole(newsRes.data);
+                setRaportari(raportariRes.data);
             } catch (err) { console.error(err); } finally { setLoading(false); }
         };
         fetchData();
@@ -103,11 +108,29 @@ function Admin() {
         } catch (err) { showMesaj(err.response?.data?.mesaj || 'Something went wrong', true); }
     };
 
+    const handleUpdateRaportare = async (id, status) => {
+        try {
+            await api.put(`/admin/raportari/${id}`, { status });
+            setRaportari(raportari.map(r => r.id === id ? { ...r, status } : r));
+            showMesaj(status === 'reviewed' ? 'Report marked as reviewed' : 'Report dismissed');
+        } catch (err) { showMesaj(err.response?.data?.mesaj || 'Something went wrong', true); }
+    };
+
     const handleEditNews = (articol) => {
         setEditingNews(articol);
         setNewsForm({ titlu: articol.titlu, continut: articol.continut, categorie: articol.categorie, status: articol.status });
         setShowNewsForm(true);
     };
+
+    const utilizatoriFiltrati = utilizatori.filter(u =>
+        u.nume?.toLowerCase().includes(searchUseri.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchUseri.toLowerCase())
+    );
+    const anunturiFiltrate = anunturi.filter(a =>
+        a.titlu?.toLowerCase().includes(searchAnunturi.toLowerCase()) ||
+        a.nume_utilizator?.toLowerCase().includes(searchAnunturi.toLowerCase()) ||
+        a.marca?.toLowerCase().includes(searchAnunturi.toLowerCase())
+    );
 
     if (loading) return <div style={styles.loading}>Loading...</div>;
 
@@ -143,6 +166,7 @@ function Admin() {
                         { key: 'utilizatori', label: `Users (${utilizatori.length})` },
                         { key: 'anunturi', label: `Listings (${anunturi.length})` },
                         { key: 'news', label: `News (${articole.length})` },
+                        { key: 'raportari', label: `Reports (${raportari.filter(r => r.status === 'pending').length})` },
                     ].map(tab => (
                         <button key={tab.key}
                             style={{ ...styles.tab, borderBottomColor: activeTab === tab.key ? 'var(--accent-light)' : 'transparent', color: activeTab === tab.key ? 'var(--text-primary)' : 'var(--text-muted)' }}
@@ -156,6 +180,14 @@ function Admin() {
 
                 {activeTab === 'utilizatori' && (
                     <div style={styles.card} className="gl-panel">
+                        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-faint)' }}>
+                            <input
+                                style={styles.input}
+                                placeholder="Search by name or email..."
+                                value={searchUseri}
+                                onChange={e => setSearchUseri(e.target.value)}
+                            />
+                        </div>
                         <div style={styles.tableWrap}>
                             <table style={styles.table}>
                                 <thead>
@@ -169,7 +201,7 @@ function Admin() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {utilizatori.map(u => (
+                                    {utilizatoriFiltrati.map(u => (
                                         <tr key={u.id} style={styles.tr}>
                                             <td style={styles.td}>{u.id}</td>
                                             <td style={styles.td}>
@@ -214,6 +246,14 @@ function Admin() {
 
                 {activeTab === 'anunturi' && (
                     <div style={styles.card} className="gl-panel">
+                        <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-faint)' }}>
+                            <input
+                                style={styles.input}
+                                placeholder="Search by title, user or brand..."
+                                value={searchAnunturi}
+                                onChange={e => setSearchAnunturi(e.target.value)}
+                            />
+                        </div>
                         <div style={styles.tableWrap}>
                             <table style={styles.table}>
                                 <thead>
@@ -228,7 +268,7 @@ function Admin() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {anunturi.map(a => (
+                                    {anunturiFiltrate.map(a => (
                                         <tr key={a.id} style={styles.tr}>
                                             <td style={styles.td}>{a.id}</td>
                                             <td style={styles.td}>
@@ -353,6 +393,64 @@ function Admin() {
                                                         <button style={styles.btnRole} className="btn-primary-glow" onClick={() => handleEditNews(articol)}>Edit</button>
                                                         <button style={styles.btnDel} className="btn-danger-hover" onClick={() => handleDeleteNews(articol.id)}>Delete</button>
                                                     </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+                {activeTab === 'raportari' && (
+                    <div style={styles.card} className="gl-panel">
+                        {raportari.length === 0 ? (
+                            <div style={styles.empty}>No reports yet.</div>
+                        ) : (
+                            <div style={styles.tableWrap}>
+                                <table style={styles.table}>
+                                    <thead>
+                                        <tr>
+                                            <th style={styles.th}>Listing</th>
+                                            <th style={styles.th}>Reported by</th>
+                                            <th style={styles.th}>Reason</th>
+                                            <th style={styles.th}>Status</th>
+                                            <th style={styles.th}>Date</th>
+                                            <th style={styles.th}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {raportari.map(r => (
+                                            <tr key={r.id} style={styles.tr}>
+                                                <td style={styles.td}>
+                                                    <div style={styles.listingCell}>
+                                                        <span style={{ fontSize: '16px' }}>🚗</span>
+                                                        <div>
+                                                            <Link to={`/listings/${r.anunt_id}`} style={{ ...styles.listingCellTitle, color: 'var(--accent-light)', textDecoration: 'none' }}>{r.anunt_titlu}</Link>
+                                                            <div style={styles.listingCellSub}>{r.marca} {r.model}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td style={styles.td}>{r.raportat_de}</td>
+                                                <td style={{ ...styles.td, maxWidth: '200px' }}>{r.motiv}</td>
+                                                <td style={styles.td}>
+                                                    <span style={{
+                                                        ...styles.roleBadge,
+                                                        background: r.status === 'pending' ? 'var(--color-warning-bg)' : r.status === 'reviewed' ? 'var(--color-success-bg)' : 'var(--pill-bg)',
+                                                        borderColor: r.status === 'pending' ? 'var(--color-warning-border)' : r.status === 'reviewed' ? 'var(--color-success-border)' : 'var(--border)',
+                                                        color: r.status === 'pending' ? 'var(--color-warning)' : r.status === 'reviewed' ? 'var(--color-success)' : 'var(--text-muted)',
+                                                    }}>
+                                                        {r.status === 'pending' ? '● Pending' : r.status === 'reviewed' ? '● Reviewed' : '○ Dismissed'}
+                                                    </span>
+                                                </td>
+                                                <td style={styles.td}>{new Date(r.creat_la).toLocaleDateString()}</td>
+                                                <td style={styles.td}>
+                                                    {r.status === 'pending' && (
+                                                        <div style={styles.actionBtns}>
+                                                            <button style={styles.btnRole} className="btn-primary-glow" onClick={() => handleUpdateRaportare(r.id, 'reviewed')}>Reviewed</button>
+                                                            <button style={styles.btnDel} className="btn-danger-hover" onClick={() => handleUpdateRaportare(r.id, 'dismissed')}>Dismiss</button>
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))}

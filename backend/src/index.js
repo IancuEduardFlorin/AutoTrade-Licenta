@@ -32,6 +32,17 @@ db.query('ALTER TABLE mesaje ADD COLUMN imagine_url VARCHAR(500) NULL').catch(()
 // Add location columns to anunturi if they don't exist yet
 db.query('ALTER TABLE anunturi ADD COLUMN oras VARCHAR(100) NULL').catch(() => {});
 db.query('ALTER TABLE anunturi ADD COLUMN judet VARCHAR(100) NULL').catch(() => {});
+// Create reports table if it doesn't exist
+db.query(`CREATE TABLE IF NOT EXISTS raportari (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    anunt_id INT NOT NULL,
+    user_id INT NOT NULL,
+    motiv VARCHAR(500) NOT NULL,
+    status ENUM('pending','reviewed','dismissed') DEFAULT 'pending',
+    creat_la TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_anunt (anunt_id),
+    INDEX idx_user (user_id)
+)`).catch(() => {});
 
 // Mentine conexiunea MySQL activa
 setInterval(async () => {
@@ -126,17 +137,11 @@ io.on('connection', (socket) => {
     console.log('[Socket] User connected:', socket.id);
     let connectedUserId = null;
 
-    // ── MESSAGING ──────────────────────────────────────────
-    // Puts this socket into the user's message-routing room.
-    // sendMessage targets these rooms via io.to(`user_${id}`).
     socket.on('join', (userId) => {
         socket.join(`user_${userId}`);
         console.log(`[Socket] join: userId=${userId} joined room user_${userId}`);
     });
 
-    // ── PRESENCE ───────────────────────────────────────────
-    // Separate event — only updates the online Map and broadcasts
-    // status. Does NOT touch rooms so messaging is unaffected.
     socket.on('user_online', (userId) => {
         connectedUserId = userId;
         console.log(`[Socket] user_online received: userId=${userId}, socketId=${socket.id}`);

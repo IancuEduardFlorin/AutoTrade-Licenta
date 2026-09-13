@@ -88,6 +88,38 @@ export const getToateAnunturile = async (req, res) => {
     }
 };
 
+// Vede toate raportarile
+export const getRaportari = async (req, res) => {
+    try {
+        const [raportari] = await db.query(
+            `SELECT raportari.*,
+                    anunturi.titlu as anunt_titlu, anunturi.marca, anunturi.model,
+                    users.nume as raportat_de
+             FROM raportari
+             JOIN anunturi ON raportari.anunt_id = anunturi.id
+             JOIN users ON raportari.user_id = users.id
+             ORDER BY FIELD(raportari.status,'pending','reviewed','dismissed'), raportari.creat_la DESC`
+        );
+        res.json(raportari);
+    } catch (error) {
+        res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
+    }
+};
+
+// Actualizeaza statusul unei raportari
+export const updateRaportare = async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!['reviewed', 'dismissed'].includes(status)) {
+            return res.status(400).json({ mesaj: 'Status invalid' });
+        }
+        await db.query('UPDATE raportari SET status = ? WHERE id = ?', [status, req.params.id]);
+        res.json({ mesaj: 'Status updated' });
+    } catch (error) {
+        res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
+    }
+};
+
 // Sterge orice anunt (ca admin)
 export const deleteAnuntAdmin = async (req, res) => {
     try {

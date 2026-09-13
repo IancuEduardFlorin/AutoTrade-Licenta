@@ -4,7 +4,9 @@ import {
     deleteUtilizator,
     schimbaRol,
     getToateAnunturile,
-    deleteAnuntAdmin
+    deleteAnuntAdmin,
+    getRaportari,
+    updateRaportare,
 } from '../controllers/adminController.js';
 import verifyToken from '../middleware/authMiddleware.js';
 import verifyAdmin from '../middleware/adminMiddleware.js';
@@ -17,5 +19,7 @@ router.delete('/utilizatori/:id', verifyToken, verifyAdmin, deleteUtilizator);
 router.put('/utilizatori/:id/rol', verifyToken, verifyAdmin, schimbaRol);
 router.get('/anunturi', verifyToken, verifyAdmin, getToateAnunturile);
 router.delete('/anunturi/:id', verifyToken, verifyAdmin, deleteAnuntAdmin);
+router.get('/raportari', verifyToken, verifyAdmin, getRaportari);
+router.put('/raportari/:id', verifyToken, verifyAdmin, updateRaportare);
 
 export default router;

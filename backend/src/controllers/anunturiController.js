@@ -191,71 +191,49 @@ export const cautareAvansata = async (req, res) => {
         `;
         const params = [];
 
-        if (marca) {
-            query += ' AND anunturi.marca LIKE ?';
-            params.push(`%${marca}%`);
-        }
-        if (model) {
-            query += ' AND anunturi.model LIKE ?';
-            params.push(`%${model}%`);
-        }
-        if (an_min) {
-            query += ' AND anunturi.an >= ?';
-            params.push(an_min);
-        }
-        if (an_max) {
-            query += ' AND anunturi.an <= ?';
-            params.push(an_max);
-        }
-        if (pret_min) {
-            query += ' AND anunturi.pret >= ?';
-            params.push(pret_min);
-        }
-        if (pret_max) {
-            query += ' AND anunturi.pret <= ?';
-            params.push(pret_max);
-        }
-        if (motorizare) {
-            query += ' AND anunturi.motorizare LIKE ?';
-            params.push(`%${motorizare}%`);
-        }
-        if (transmisie) {
-            query += ' AND anunturi.transmisie = ?';
-            params.push(transmisie);
-        }
-        if (caroserie) {
-            query += ' AND anunturi.caroserie = ?';
-            params.push(caroserie);
-        }
-        if (tractiune) {
-            query += ' AND anunturi.tractiune = ?';
-            params.push(tractiune);
-        }
-        if (km_max) {
-            query += ' AND anunturi.kilometraj <= ?';
-            params.push(km_max);
-        }
-        if (putere_min) {
-            query += ' AND anunturi.putere >= ?';
-            params.push(putere_min);
-        }
-        if (judet) {
-            query += ' AND anunturi.judet = ?';
-            params.push(judet);
-        }
-        if (oras) {
-            query += ' AND anunturi.oras LIKE ?';
-            params.push(`%${oras}%`);
-        }
-        if (user_id) {
-            query += ' AND anunturi.user_id = ?';
-            params.push(user_id);
-        }
-
+        if (marca) {query += ' AND anunturi.marca LIKE ?';params.push(`%${marca}%`);}
+        if (model) {query += ' AND anunturi.model LIKE ?';params.push(`%${model}%`);}
+        if (an_min) {query += ' AND anunturi.an >= ?';params.push(an_min);}
+        if (an_max) {query += ' AND anunturi.an <= ?';params.push(an_max);}
+        if (pret_min) {query += ' AND anunturi.pret >= ?';params.push(pret_min);}
+        if (pret_max) {query += ' AND anunturi.pret <= ?';params.push(pret_max);}
+        if (motorizare) {query += ' AND anunturi.motorizare LIKE ?';params.push(`%${motorizare}%`);}
+        if (transmisie) {query += ' AND anunturi.transmisie = ?';params.push(transmisie);}
+        if (caroserie) {query += ' AND anunturi.caroserie = ?';params.push(caroserie);}
+        if (tractiune) {query += ' AND anunturi.tractiune = ?';params.push(tractiune);}
+        if (km_max) {query += ' AND anunturi.kilometraj <= ?';params.push(km_max);}
+        if (putere_min) {query += ' AND anunturi.putere >= ?';params.push(putere_min);}
+        if (judet) {query += ' AND anunturi.judet = ?';params.push(judet);}
+        if (oras) {query += ' AND anunturi.oras LIKE ?';params.push(`%${oras}%`);}
+        if (user_id) {query += ' AND anunturi.user_id = ?';params.push(user_id);}
         query += ' ORDER BY anunturi.creat_la DESC';
-
         const [anunturi] = await db.query(query, params);
+
         res.json(anunturi);
+    } catch (error) {
+        res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
+    }
+};
+
+// PROTEJAT - Raporteaza un anunt
+export const raporteazaAnunt = async (req, res) => {
+    try {
+        const { motiv } = req.body;
+        if (!motiv?.trim()) {
+            return res.status(400).json({ mesaj: 'A reason is required' });
+        }
+        const [existing] = await db.query(
+            'SELECT id FROM raportari WHERE anunt_id = ? AND user_id = ?',
+            [req.params.id, req.user.id]
+        );
+        if (existing.length > 0) {
+            return res.status(409).json({ mesaj: 'You have already reported this listing' });
+        }
+        await db.query(
+            'INSERT INTO raportari (anunt_id, user_id, motiv) VALUES (?, ?, ?)',
+            [req.params.id, req.user.id, motiv.trim()]
+        );
+        res.status(201).json({ mesaj: 'Listing reported successfully' });
     } catch (error) {
         res.status(500).json({ mesaj: 'Eroare server', eroare: error.message });
     }

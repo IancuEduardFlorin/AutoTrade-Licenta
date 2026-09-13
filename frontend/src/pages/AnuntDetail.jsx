@@ -22,6 +22,10 @@ function AnuntDetail() {
     const [aiLoading, setAiLoading] = useState(false);
     const [aiOpen, setAiOpen] = useState(false);
     const [inCompare, setInCompare] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportMotiv, setReportMotiv] = useState('');
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reportDone, setReportDone] = useState(false);
 
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     const token = localStorage.getItem('token');
@@ -57,6 +61,22 @@ function AnuntDetail() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [lightbox, imagineActiva]);
+
+    const handleReport = async () => {
+        if (!reportMotiv) return;
+        setReportLoading(true);
+        try {
+            await api.post(`/anunturi/${id}/raporteaza`, { motiv: reportMotiv });
+            setReportDone(true);
+            setTimeout(() => { setShowReportModal(false); setReportDone(false); setReportMotiv(''); }, 2000);
+        } catch (err) {
+            setMesaj(err.response?.data?.mesaj || 'Report failed');
+            setShowReportModal(false);
+            setTimeout(() => setMesaj(''), 3000);
+        } finally {
+            setReportLoading(false);
+        }
+    };
 
     const handleAiAnalysis = async () => {
         if (!aiOpen) { setAiOpen(true); }
@@ -236,6 +256,16 @@ function AnuntDetail() {
                             </Link>
                         )}
 
+                        {token && !isOwner && !isAdmin && (
+                            <button
+                                style={styles.btnReport}
+                                onClick={() => setShowReportModal(true)}
+                                className="btn-ghost-hover"
+                            >
+                                ⚑ Report listing
+                            </button>
+                        )}
+
                         {(isOwner || isAdmin) && (
                             <div style={styles.ownerActions}>
                                 <Link to={`/listings/${id}/edit`} style={styles.btnEdit} className="btn-primary-glow">Edit listing</Link>
@@ -335,6 +365,56 @@ function AnuntDetail() {
                     </div>
                 </div>
             </div>
+
+            {showReportModal && (
+                <div style={styles.modalOverlay} onClick={() => { setShowReportModal(false); setReportMotiv(''); }}>
+                    <div style={styles.modalBox} onClick={e => e.stopPropagation()}>
+                        {reportDone ? (
+                            <div style={styles.reportDone}>
+                                <div style={{ fontSize: '36px', color: 'var(--color-success)' }}>✓</div>
+                                <div style={styles.reportDoneText}>Listing reported. Thank you!</div>
+                            </div>
+                        ) : (
+                            <>
+                                <div style={styles.modalTitle}>Report listing</div>
+                                <div style={styles.modalSub}>Select a reason for your report</div>
+                                <div style={styles.reportReasons}>
+                                    {[
+                                        'Incorrect information',
+                                        'Fraud / scam',
+                                        'Duplicate listing',
+                                        'Offensive content',
+                                        'Sold / no longer available',
+                                        'Other',
+                                    ].map(r => (
+                                        <button
+                                            key={r}
+                                            type="button"
+                                            style={{
+                                                ...styles.reasonBtn,
+                                                background: reportMotiv === r ? 'var(--accent-tint-strong)' : 'transparent',
+                                                borderColor: reportMotiv === r ? 'var(--border-accent)' : 'var(--border)',
+                                                color: reportMotiv === r ? 'var(--accent-light)' : 'var(--text-secondary)',
+                                            }}
+                                            onClick={() => setReportMotiv(r)}
+                                        >
+                                            {reportMotiv === r ? '● ' : '○ '}{r}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div style={styles.modalActions}>
+                                    <button style={styles.btnModalCancel} className="btn-ghost-hover" onClick={() => { setShowReportModal(false); setReportMotiv(''); }}>
+                                        Cancel
+                                    </button>
+                                    <button style={styles.btnModalSubmit} className="btn-primary-glow" onClick={handleReport} disabled={!reportMotiv || reportLoading}>
+                                        {reportLoading ? 'Sending...' : 'Submit report'}
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -444,6 +524,52 @@ const styles = {
     aiCatTitle: { fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '3px' },
     aiItem: { fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, paddingLeft: '4px' },
     aiText: { fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.7 },
+    btnReport: {
+        width: '100%',
+        background: 'var(--bg-card)',
+        backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
+        border: '1px solid var(--border)',
+        color: 'var(--text-primary)', borderRadius: '8px',
+        padding: '10px', fontSize: '13px', fontWeight: '500',
+    },
+    modalOverlay: {
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px',
+    },
+    modalBox: {
+        background: 'var(--bg-card)',
+        backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
+        border: '1px solid var(--border)',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+        borderRadius: '14px', padding: '28px 32px',
+        width: '100%', maxWidth: '420px',
+    },
+    modalTitle: { fontSize: '17px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '6px' },
+    modalSub: { fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' },
+    reportReasons: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '22px' },
+    reasonBtn: {
+        textAlign: 'left', border: '1px solid',
+        borderRadius: '8px', padding: '10px 14px',
+        fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit',
+        transition: 'all 0.15s',
+    },
+    modalActions: { display: 'flex', gap: '10px', justifyContent: 'flex-end' },
+    btnModalCancel: {
+        background: 'transparent', border: '1px solid var(--border)',
+        color: 'var(--text-muted)', borderRadius: '8px', padding: '9px 18px', fontSize: '13px',
+    },
+    btnModalSubmit: {
+        background: 'var(--btn-gradient)', color: 'var(--text-primary)', border: 'none',
+        borderRadius: '8px', padding: '9px 20px', fontSize: '13px', fontWeight: '500',
+        boxShadow: '0 2px 12px rgba(49,75,110,0.4)',
+    },
+    reportDone: {
+        textAlign: 'center', padding: '24px 0',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+    },
+    reportDoneText: { fontSize: '15px', color: 'var(--text-primary)' },
 };
 
 export default AnuntDetail;
